@@ -1,0 +1,80 @@
+schema_version: "1.0"
+
+id: description-generator
+name: Product Description Generator
+created: "2024-02-01"
+authors:
+  - carol@acme.com
+
+intent: |
+  Generate compelling product descriptions for the catalog.
+  Should match brand voice and highlight key selling points.
+  Output is plain text, ready for CMS insertion.
+
+assumptions:
+  model: claude-sonnet-4-20250514
+  min_context_window: 4000
+  max_tokens: 500
+  template_engine: jinja2
+  
+  upstream_dependencies:
+    - service: catalog-api
+      provides: [product_name, category, price, features]
+    - service: brand-config
+      provides: [brand_voice, company_name]
+
+variables:
+  company_name:
+    type: string
+    description: Company name for branding
+    required: true
+  
+  product_name:
+    type: string
+    description: Name of the product
+    required: true
+  
+  category:
+    type: string
+    description: Product category
+    required: true
+  
+  price:
+    type: string
+    description: Formatted price string
+    required: true
+  
+  features:
+    type: array
+    description: List of product features
+    required: true
+  
+  max_words:
+    type: integer
+    description: Maximum word count for description
+    required: false
+    default: 150
+  
+  brand_voice:
+    type: string
+    description: Brand voice guidelines
+    required: false
+    default: "friendly, professional, enthusiastic"
+
+evaluation:
+  metrics:
+    - name: word_count_compliance
+      target: "100%"
+      measured_by: eval/word-count-checker.py
+    - name: readability_score
+      target: ">= 60"
+      measured_by: eval/flesch-kincaid.py
+
+annotations: []
+
+changelog:
+  - version: "1.0"
+    date: "2024-02-01"
+    author: carol@acme.com
+    summary: Initial version
+    linked_annotations: []
