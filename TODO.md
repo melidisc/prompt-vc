@@ -2,7 +2,7 @@
 
 ## Phase 1: Core CLI Implementation
 
-- [ ] **Implement `validate` command**
+- [x] **Implement `validate` command**
   - Parse `.prompt.meta.yaml` files using Pydantic models
   - Check schema validity
   - Verify annotation hashes match content in prompt files

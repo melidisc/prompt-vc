@@ -112,8 +112,68 @@ changelog:
 @click.option("--strict", is_flag=True, help="Fail on warnings")
 def validate(path: str | None, strict: bool) -> None:
     """Validate prompts and metadata."""
-    # TODO: Implement validation
-    console.print("[yellow]⚠[/yellow] Validation not yet implemented")
+    from pathlib import Path
+    from .validation import validate_all
+
+    search_path = Path(path) if path else None
+    results = validate_all(search_path)
+
+    if not results:
+        console.print("[yellow]⚠[/yellow] No .prompt.meta.yaml files found")
+        return
+
+    total_errors = 0
+    total_warnings = 0
+
+    for result in results:
+        total_errors += result.error_count
+        total_warnings += result.warning_count
+
+        # Show file header
+        if result.issues:
+            rel_path = result.meta_file
+            try:
+                rel_path = str(Path(result.meta_file).relative_to(Path.cwd()))
+            except ValueError:
+                pass
+
+            if result.valid:
+                console.print(f"\n[yellow]{rel_path}[/yellow]")
+            else:
+                console.print(f"\n[red]{rel_path}[/red]")
+
+            # Show issues
+            for issue in result.issues:
+                if issue.level == "error":
+                    prefix = "[red]✗[/red]"
+                else:
+                    prefix = "[yellow]⚠[/yellow]"
+
+                line_info = f" (line {issue.line})" if issue.line else ""
+                console.print(f"  {prefix} {issue.message}{line_info}")
+        else:
+            rel_path = result.meta_file
+            try:
+                rel_path = str(Path(result.meta_file).relative_to(Path.cwd()))
+            except ValueError:
+                pass
+            console.print(f"[green]✓[/green] {rel_path}")
+
+    # Summary
+    console.print()
+    if total_errors == 0 and total_warnings == 0:
+        console.print(f"[green]✓ All {len(results)} prompt(s) valid[/green]")
+    else:
+        parts = []
+        if total_errors > 0:
+            parts.append(f"[red]{total_errors} error(s)[/red]")
+        if total_warnings > 0:
+            parts.append(f"[yellow]{total_warnings} warning(s)[/yellow]")
+        console.print(f"Found {', '.join(parts)} in {len(results)} prompt(s)")
+
+    # Exit with error code if validation failed
+    if total_errors > 0 or (strict and total_warnings > 0):
+        raise SystemExit(1)
 
 
 @main.command("list")
