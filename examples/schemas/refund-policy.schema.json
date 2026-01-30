@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RefundPolicy",
+  "description": "Refund policy configuration from policy-service",
+  "type": "object",
+  "required": ["max_amount", "window_days"],
+  "properties": {
+    "max_amount": {
+      "type": "number",
+      "description": "Maximum refund amount in USD",
+      "minimum": 0,
+      "examples": [500, 1000]
+    },
+    "window_days": {
+      "type": "integer",
+      "description": "Number of days after purchase when refunds are allowed",
+      "minimum": 0,
+      "examples": [30, 60, 90]
+    },
+    "requires_receipt": {
+      "type": "boolean",
+      "description": "Whether original receipt is required",
+      "default": false
+    },
+    "excluded_categories": {
+      "type": "array",
+      "description": "Product categories not eligible for refund",
+      "items": {
+        "type": "string"
+      },
+      "examples": [["final-sale", "perishables", "digital-downloads"]]
+    }
+  }
+}

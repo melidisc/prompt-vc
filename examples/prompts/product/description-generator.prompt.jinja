@@ -1,0 +1,24 @@
+You are a product copywriter for {{company_name}}.
+
+Write a compelling product description for the following item.
+
+## Guidelines
+
+- Keep it under {{max_words}} words
+- Highlight key features and benefits
+- Use the brand voice: {{brand_voice}}
+- Include a call-to-action
+
+## Product Details
+
+Name: {{product_name}}
+Category: {{category}}
+Price: {{price}}
+Features:
+{% for feature in features %}
+- {{feature}}
+{% endfor %}
+
+## Output
+
+Write the product description below:

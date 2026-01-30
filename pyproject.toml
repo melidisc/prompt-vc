@@ -1,0 +1,69 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "prompt-vc"
+version = "0.1.0"
+description = "Version control metadata for LLM prompts"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [
+    { name = "Your Name", email = "you@example.com" }
+]
+keywords = ["llm", "prompts", "version-control", "ai", "ml"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Version Control",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "click>=8.0",
+    "pyyaml>=6.0",
+    "rich>=13.0",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "ruff",
+    "mypy",
+    "types-PyYAML",
+]
+
+[project.scripts]
+prompt-vc = "prompt_vc.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/yourusername/prompt-vc"
+Documentation = "https://github.com/yourusername/prompt-vc#readme"
+Repository = "https://github.com/yourusername/prompt-vc"
+Issues = "https://github.com/yourusername/prompt-vc/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/prompt_vc"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.9"
+strict = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

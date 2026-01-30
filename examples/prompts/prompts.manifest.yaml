@@ -1,0 +1,45 @@
+schema_version: "1.0"
+organization: acme-corp
+repository: prompt-library
+
+defaults:
+  model: claude-sonnet-4-20250514
+  template_engine: jinja2
+  review_required: true
+
+domains:
+  customer-support:
+    description: Customer-facing support automation
+    owners:
+      - team: support-engineering
+        slack: "#support-eng"
+    prompts:
+      - id: refund-handler
+        path: customer-support/refund-handler.prompt.md
+        status: production
+        deployed_to: [support-api, chat-widget]
+
+  product:
+    description: Product catalog and content generation
+    owners:
+      - team: catalog-team
+        slack: "#catalog-eng"
+    prompts:
+      - id: description-generator
+        path: product/description-generator.prompt.jinja
+        status: production
+        deployed_to: [catalog-cms]
+
+governance:
+  production_requirements:
+    must_have_intent: true
+    must_have_evaluation: true
+    min_annotations: 0
+    required_tags: [reviewed]
+  
+  review_policy:
+    domains_requiring_legal_review:
+      - customer-support
+    auto_reviewers:
+      customer-support: ["@support-eng-leads"]
+      product: ["@catalog-team"]
