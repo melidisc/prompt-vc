@@ -9,7 +9,7 @@
   - Report orphaned annotations (hash mismatch)
   - Check variable references in prompt match meta definitions
 
-- [ ] **Implement `view --annotated` command**
+- [x] **Implement `view --annotated` command**
   - Load prompt file and corresponding meta file
   - Parse annotations and match to lines via `line_hint`
   - Render prompt with inline annotation display (using `rich`)

@@ -200,8 +200,50 @@ def list_prompts(domain: str | None, status: str | None) -> None:
 @click.option("--meta", "-m", is_flag=True, help="Show metadata summary")
 def view(prompt_id: str, annotated: bool, meta: bool) -> None:
     """View a prompt with optional annotation overlay."""
-    # TODO: Implement view
-    console.print(f"[yellow]⚠[/yellow] View not yet implemented for: {prompt_id}")
+    from .view import (
+        load_prompt_and_meta,
+        render_annotated_prompt,
+        render_meta_summary,
+    )
+
+    meta_path, prompt_path, parsed_meta, issues = load_prompt_and_meta(prompt_id)
+
+    if issues and parsed_meta is None:
+        for issue in issues:
+            console.print(f"[red]✗[/red] {issue}")
+        raise SystemExit(1)
+
+    if parsed_meta is None:
+        console.print(f"[red]✗[/red] Could not parse metadata for: {prompt_id}")
+        raise SystemExit(1)
+
+    # Show metadata summary if requested
+    if meta:
+        render_meta_summary(parsed_meta, console)
+        if not annotated:
+            return
+
+    # Show annotated view if requested or if --meta wasn't specified
+    if annotated or not meta:
+        if prompt_path is None:
+            console.print(f"[red]✗[/red] No prompt file found")
+            raise SystemExit(1)
+
+        try:
+            with open(prompt_path, "r", encoding="utf-8") as f:
+                prompt_content = f.read()
+        except OSError as e:
+            console.print(f"[red]✗[/red] Cannot read prompt file: {e}")
+            raise SystemExit(1)
+
+        if annotated:
+            render_annotated_prompt(prompt_content, parsed_meta, console)
+        else:
+            # Just show the raw prompt content with line numbers
+            lines = prompt_content.splitlines()
+            console.print(f"\n[bold]{parsed_meta.name or parsed_meta.id}[/bold]\n")
+            for i, line in enumerate(lines, 1):
+                console.print(f"[dim]{i:4d}[/dim] │ {line}")
 
 
 @main.command()
