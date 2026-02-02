@@ -318,3 +318,155 @@ def render_meta_summary(meta: PromptMeta, console: Console) -> None:
             console.print(f"  v{entry.version} ({entry.date}): {entry.summary}")
 
     console.print()
+
+
+def render_full_info(
+    meta: PromptMeta,
+    console: Console,
+    prompt_path: Path | None = None,
+    deployed_to: list[str] | None = None,
+    domain: str | None = None,
+    status: str | None = None,
+) -> None:
+    """Render complete detailed information about a prompt.
+
+    Args:
+        meta: Parsed prompt metadata
+        console: Rich console for output
+        prompt_path: Path to the prompt file (for file info)
+        deployed_to: Deployment targets from manifest
+        domain: Domain from manifest
+        status: Status from manifest
+    """
+    from rich.panel import Panel
+
+    # Header
+    console.print()
+    console.print(Panel(
+        f"[bold]{meta.name or meta.id}[/bold]\n[dim]{meta.id}[/dim]",
+        title="Prompt Info",
+        border_style="blue"
+    ))
+
+    # Basic metadata
+    console.print("\n[bold cyan]Metadata[/bold cyan]")
+    console.print(f"  Schema Version: {meta.schema_version}")
+    if meta.created:
+        console.print(f"  Created: {meta.created}")
+    if meta.authors:
+        console.print(f"  Authors: {', '.join(meta.authors)}")
+    if prompt_path:
+        console.print(f"  File: {prompt_path}")
+
+    # Deployment info (from manifest)
+    if domain or status or deployed_to:
+        console.print("\n[bold cyan]Deployment[/bold cyan]")
+        if domain:
+            console.print(f"  Domain: {domain}")
+        if status:
+            status_style = {
+                "production": "green",
+                "staging": "yellow",
+                "experimental": "dim",
+                "deprecated": "red",
+            }.get(status, "")
+            if status_style:
+                console.print(f"  Status: [{status_style}]{status}[/{status_style}]")
+            else:
+                console.print(f"  Status: {status}")
+        if deployed_to:
+            console.print(f"  Deployed To: {', '.join(deployed_to)}")
+
+    # Intent
+    if meta.intent:
+        console.print("\n[bold cyan]Intent[/bold cyan]")
+        for line in meta.intent.strip().split("\n"):
+            console.print(f"  {line}")
+
+    # Assumptions
+    if meta.assumptions:
+        console.print("\n[bold cyan]Assumptions[/bold cyan]")
+        assumptions = meta.assumptions
+        if assumptions.model:
+            console.print(f"  Model: {assumptions.model}")
+        if assumptions.template_engine:
+            console.print(f"  Template Engine: {assumptions.template_engine}")
+        if assumptions.min_context_window:
+            console.print(f"  Min Context Window: {assumptions.min_context_window:,}")
+        if assumptions.max_tokens:
+            console.print(f"  Max Tokens: {assumptions.max_tokens:,}")
+        if assumptions.expected_latency_ms:
+            console.print(f"  Expected Latency: {assumptions.expected_latency_ms}ms")
+
+        # Upstream dependencies
+        if assumptions.upstream_dependencies:
+            console.print("\n  [bold]Upstream Dependencies:[/bold]")
+            for dep in assumptions.upstream_dependencies:
+                provides = f" (provides: {', '.join(dep.provides)})" if dep.provides else ""
+                console.print(f"    • {dep.service}{provides}")
+
+        # Downstream consumers
+        if assumptions.downstream_consumers:
+            console.print("\n  [bold]Downstream Consumers:[/bold]")
+            for dep in assumptions.downstream_consumers:
+                expects = f" (expects: {dep.expects})" if dep.expects else ""
+                console.print(f"    • {dep.service}{expects}")
+
+    # Variables - full table
+    if meta.variables:
+        console.print(f"\n[bold cyan]Variables[/bold cyan] ({len(meta.variables)})")
+        table = Table(show_header=True, header_style="bold", box=None, padding=(0, 2))
+        table.add_column("Name")
+        table.add_column("Type")
+        table.add_column("Required")
+        table.add_column("Default")
+        table.add_column("Description")
+
+        for name, var in meta.variables.items():
+            required = "[green]yes[/green]" if var.required else "[dim]no[/dim]"
+            default = str(var.default) if var.default is not None else "-"
+            if len(default) > 20:
+                default = default[:17] + "..."
+            desc = (var.description or "-")[:50]
+            table.add_row(name, var.type, required, default, desc)
+
+        console.print(table)
+
+    # Evaluation
+    if meta.evaluation:
+        console.print(f"\n[bold cyan]Evaluation[/bold cyan]")
+        if meta.evaluation.test_cases_ref:
+            console.print(f"  Test Cases: {meta.evaluation.test_cases_ref}")
+        if meta.evaluation.metrics:
+            console.print("  [bold]Metrics:[/bold]")
+            for metric in meta.evaluation.metrics:
+                console.print(f"    • {metric.name}: target {metric.target}")
+                console.print(f"      [dim]measured by: {metric.measured_by}[/dim]")
+
+    # Annotations - full details
+    if meta.annotations:
+        console.print(f"\n[bold cyan]Annotations[/bold cyan] ({len(meta.annotations)})")
+        for ann in meta.annotations:
+            console.print(f"\n  [yellow][{ann.id}][/yellow]")
+            console.print(f"    Preview: \"{ann.anchor.preview}\"")
+            if ann.anchor.line_hint:
+                console.print(f"    Line: {ann.anchor.line_hint}")
+            if ann.rationale:
+                console.print(f"    Rationale: {ann.rationale.strip().split(chr(10))[0]}")
+            if ann.tags:
+                console.print(f"    Tags: [cyan]{', '.join(ann.tags)}[/cyan]")
+            if ann.source:
+                console.print(f"    Source: [blue underline]{ann.source}[/blue underline]")
+            if ann.author:
+                date_str = f" ({ann.date})" if ann.date else ""
+                console.print(f"    Author: {ann.author}{date_str}")
+
+    # Changelog - full history
+    if meta.changelog:
+        console.print(f"\n[bold cyan]Changelog[/bold cyan]")
+        for entry in meta.changelog:
+            linked = f" [{', '.join(entry.linked_annotations)}]" if entry.linked_annotations else ""
+            console.print(f"  [bold]v{entry.version}[/bold] ({entry.date}) - {entry.author}")
+            console.print(f"    {entry.summary}{linked}")
+
+    console.print()

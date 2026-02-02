@@ -300,8 +300,49 @@ def audit() -> None:
 @click.argument("prompt_id")
 def info(prompt_id: str) -> None:
     """Show detailed information about a prompt."""
-    # TODO: Implement info
-    console.print(f"[yellow]⚠[/yellow] Info not yet implemented for: {prompt_id}")
+    from pathlib import Path
+    from .view import load_prompt_and_meta, render_full_info
+    from .listing import find_manifest, parse_manifest
+
+    meta_path, prompt_path, parsed_meta, issues = load_prompt_and_meta(prompt_id)
+
+    if issues and parsed_meta is None:
+        for issue in issues:
+            console.print(f"[red]✗[/red] {issue}")
+        raise SystemExit(1)
+
+    if parsed_meta is None:
+        console.print(f"[red]✗[/red] Could not parse metadata for: {prompt_id}")
+        raise SystemExit(1)
+
+    # Try to get deployment info from manifest
+    deployed_to = None
+    domain = None
+    status = None
+
+    manifest_path = find_manifest()
+    if manifest_path:
+        manifest, _ = parse_manifest(manifest_path)
+        if manifest:
+            # Find this prompt in the manifest
+            for domain_name, domain_obj in manifest.domains.items():
+                for prompt_ref in domain_obj.prompts:
+                    if prompt_ref.id == parsed_meta.id:
+                        domain = domain_name
+                        status = prompt_ref.status
+                        deployed_to = prompt_ref.deployed_to
+                        break
+                if domain:
+                    break
+
+    render_full_info(
+        parsed_meta,
+        console,
+        prompt_path=prompt_path,
+        deployed_to=deployed_to,
+        domain=domain,
+        status=status,
+    )
 
 
 if __name__ == "__main__":

@@ -31,9 +31,9 @@ Implemented:
 - `prompt-vc validate [path]` - Validate prompts and metadata
 - `prompt-vc view <id> [--annotated] [--meta]` - View a prompt
 - `prompt-vc list [--domain] [--status] [--owner]` - List prompts
+- `prompt-vc info <id>` - Show detailed prompt information
 
 Stubbed (TODO):
-- `prompt-vc info <id>` - Show detailed prompt information
 - `prompt-vc annotate <id>` - Add annotations
 - `prompt-vc audit` - Check governance compliance
 

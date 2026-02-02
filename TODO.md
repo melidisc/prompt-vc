@@ -19,7 +19,7 @@
   - Fall back to directory scanning if no manifest
   - Support filtering by domain, status, owner
 
-- [ ] **Implement `info` command**
+- [x] **Implement `info` command**
   - Display full metadata summary for a prompt
   - Show variables, assumptions, annotations, deployment info
 
