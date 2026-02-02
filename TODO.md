@@ -14,7 +14,7 @@
   - Parse annotations and match to lines via `line_hint`
   - Render prompt with inline annotation display (using `rich`)
 
-- [ ] **Implement `list` command**
+- [x] **Implement `list` command**
   - Parse `prompts.manifest.yaml` if present
   - Fall back to directory scanning if no manifest
   - Support filtering by domain, status, owner

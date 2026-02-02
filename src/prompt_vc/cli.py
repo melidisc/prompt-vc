@@ -179,18 +179,52 @@ def validate(path: str | None, strict: bool) -> None:
 @main.command("list")
 @click.option("--domain", "-d", default=None, help="Filter by domain")
 @click.option("--status", "-s", default=None, help="Filter by status")
-def list_prompts(domain: str | None, status: str | None) -> None:
+@click.option("--owner", "-o", default=None, help="Filter by owner")
+@click.option("--path", "-p", default=None, help="Path to search")
+def list_prompts(domain: str | None, status: str | None, owner: str | None, path: str | None) -> None:
     """List all prompts in the repository."""
-    # TODO: Implement listing from manifest
-    table = Table(title="Prompts")
+    from pathlib import Path
+    from .listing import list_prompts as do_list_prompts
+
+    search_path = Path(path) if path else None
+    prompts, used_manifest = do_list_prompts(
+        search_path,
+        domain_filter=domain,
+        status_filter=status,
+        owner_filter=owner,
+    )
+
+    if not prompts:
+        console.print("[yellow]⚠[/yellow] No prompts found")
+        if status and not used_manifest:
+            console.print("[dim]Note: --status filter requires a manifest file[/dim]")
+        return
+
+    table = Table(title="Prompts" + (" (from manifest)" if used_manifest else " (from directory scan)"))
     table.add_column("Domain", style="cyan")
     table.add_column("ID", style="green")
+    table.add_column("Name")
     table.add_column("Status")
     table.add_column("Deployed To")
-    
-    # Placeholder
-    table.add_row("(none)", "(no prompts found)", "-", "-")
-    
+
+    for prompt in prompts:
+        deployed = ", ".join(prompt.deployed_to) if prompt.deployed_to else "-"
+        status_style = {
+            "production": "green",
+            "staging": "yellow",
+            "experimental": "dim",
+            "deprecated": "red",
+        }.get(prompt.status, "")
+        status_text = f"[{status_style}]{prompt.status}[/{status_style}]" if status_style else prompt.status
+
+        table.add_row(
+            prompt.domain or "-",
+            prompt.id,
+            prompt.name or "-",
+            status_text,
+            deployed,
+        )
+
     console.print(table)
 
 
