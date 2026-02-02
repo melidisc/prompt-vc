@@ -1,6 +1,6 @@
 """Pydantic models for prompt-vc schemas."""
 
-from datetime import date
+import datetime
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -21,7 +21,7 @@ class Annotation(BaseModel):
     id: str = Field(description="Unique annotation ID")
     anchor: Anchor
     author: str | None = Field(default=None, description="Author email")
-    date: date | None = Field(default=None, description="Date created")
+    date: datetime.date | None = Field(default=None, description="Date created")
     source: str | None = Field(default=None, description="URL or path to evidence")
     rationale: str | None = Field(default=None, description="Why this text exists")
     tags: list[str] = Field(default_factory=list)
@@ -74,9 +74,9 @@ class Assumptions(BaseModel):
 
 class ChangelogEntry(BaseModel):
     """Changelog entry."""
-    
+
     version: str
-    date: date
+    date: datetime.date
     author: str
     summary: str
     linked_annotations: list[str] = Field(default_factory=list)
@@ -88,7 +88,7 @@ class PromptMeta(BaseModel):
     schema_version: str = "1.0"
     id: str
     name: str | None = None
-    created: date | None = None
+    created: datetime.date | None = None
     authors: list[str] = Field(default_factory=list)
     intent: str | None = None
     assumptions: Assumptions | None = None
