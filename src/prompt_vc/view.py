@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
 from rich.style import Style
 from rich.table import Table
@@ -338,8 +339,6 @@ def render_full_info(
         domain: Domain from manifest
         status: Status from manifest
     """
-    from rich.panel import Panel
-
     # Header
     console.print()
     console.print(Panel(
@@ -447,26 +446,26 @@ def render_full_info(
     if meta.annotations:
         console.print(f"\n[bold cyan]Annotations[/bold cyan] ({len(meta.annotations)})")
         for ann in meta.annotations:
-            console.print(f"\n  [yellow][{ann.id}][/yellow]")
-            console.print(f"    Preview: \"{ann.anchor.preview}\"")
+            console.print(f"\n  [yellow][{escape(ann.id)}][/yellow]")
+            console.print(f"    Preview: \"{escape(ann.anchor.preview)}\"")
             if ann.anchor.line_hint:
                 console.print(f"    Line: {ann.anchor.line_hint}")
             if ann.rationale:
-                console.print(f"    Rationale: {ann.rationale.strip().split(chr(10))[0]}")
+                console.print(f"    Rationale: {escape(ann.rationale.strip().split(chr(10))[0])}")
             if ann.tags:
-                console.print(f"    Tags: [cyan]{', '.join(ann.tags)}[/cyan]")
+                console.print(f"    Tags: [cyan]{escape(', '.join(ann.tags))}[/cyan]")
             if ann.source:
-                console.print(f"    Source: [blue underline]{ann.source}[/blue underline]")
+                console.print(f"    Source: [blue underline]{escape(ann.source)}[/blue underline]")
             if ann.author:
                 date_str = f" ({ann.date})" if ann.date else ""
-                console.print(f"    Author: {ann.author}{date_str}")
+                console.print(f"    Author: {escape(ann.author)}{date_str}")
 
     # Changelog - full history
     if meta.changelog:
         console.print(f"\n[bold cyan]Changelog[/bold cyan]")
         for entry in meta.changelog:
             linked = f" [{', '.join(entry.linked_annotations)}]" if entry.linked_annotations else ""
-            console.print(f"  [bold]v{entry.version}[/bold] ({entry.date}) - {entry.author}")
-            console.print(f"    {entry.summary}{linked}")
+            console.print(f"  [bold]v{escape(entry.version)}[/bold] ({entry.date}) - {escape(entry.author)}")
+            console.print(f"    {escape(entry.summary)}{linked}")
 
     console.print()

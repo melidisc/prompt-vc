@@ -5,11 +5,12 @@ import random
 import string
 from pathlib import Path
 
-import yaml
+from rich.console import Console
+from rich.markup import escape
+from ruamel.yaml import YAML
 
 from .hashing import extract_preview, hash_content
 from .models import Anchor, Annotation, PromptMeta
-from .validation import find_prompt_file, parse_meta_file
 
 
 def generate_annotation_id(existing_ids: set[str] | None = None) -> str:
@@ -83,13 +84,19 @@ def save_annotation_to_meta(
 ) -> None:
     """Append an annotation to a meta file.
 
+    Uses ruamel.yaml to preserve formatting and comments.
+
     Args:
         meta_path: Path to the .prompt.meta.yaml file
         annotation: Annotation to add
     """
+    yaml = YAML()
+    yaml.preserve_quotes = True
+    yaml.indent(mapping=2, sequence=2, offset=2)
+
     # Read the existing file
     with open(meta_path, "r", encoding="utf-8") as f:
-        raw_data = yaml.safe_load(f)
+        raw_data = yaml.load(f)
 
     if raw_data is None:
         raw_data = {}
@@ -121,9 +128,9 @@ def save_annotation_to_meta(
 
     raw_data["annotations"].append(ann_dict)
 
-    # Write back
+    # Write back preserving formatting
     with open(meta_path, "w", encoding="utf-8") as f:
-        yaml.dump(raw_data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+        yaml.dump(raw_data, f)
 
 
 def get_existing_annotation_ids(meta: PromptMeta) -> set[str]:
@@ -140,7 +147,7 @@ def get_existing_annotation_ids(meta: PromptMeta) -> set[str]:
 
 def display_prompt_for_selection(
     prompt_content: str,
-    console,
+    console: Console,
     highlight_line: int | None = None,
 ) -> None:
     """Display prompt content with line numbers for selection.
@@ -155,17 +162,18 @@ def display_prompt_for_selection(
     console.print("\n[bold]Select a line to annotate:[/bold]\n")
 
     for i, line in enumerate(lines, start=1):
+        escaped_line = escape(line)
         if highlight_line and i == highlight_line:
-            console.print(f"[yellow bold]→ {i:4d}[/yellow bold] │ [yellow]{line}[/yellow]")
+            console.print(f"[yellow bold]→ {i:4d}[/yellow bold] │ [yellow]{escaped_line}[/yellow]")
         else:
-            console.print(f"[dim]{i:4d}[/dim] │ {line}")
+            console.print(f"[dim]{i:4d}[/dim] │ {escaped_line}")
 
     console.print()
 
 
 def interactive_annotate(
     prompt_id_or_path: str,
-    console,
+    console: Console,
     line: int | None = None,
     rationale: str | None = None,
     source: str | None = None,
@@ -225,7 +233,7 @@ def interactive_annotate(
 
     # Show selected line
     console.print(f"\n[bold]Selected line {line}:[/bold]")
-    console.print(f"  [yellow]{line_text}[/yellow]\n")
+    console.print(f"  [yellow]{escape(line_text)}[/yellow]\n")
 
     # Get rationale
     if rationale is None:

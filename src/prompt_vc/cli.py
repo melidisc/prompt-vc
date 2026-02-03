@@ -326,11 +326,10 @@ def audit() -> None:
 @click.argument("prompt_id")
 def info(prompt_id: str) -> None:
     """Show detailed information about a prompt."""
-    from pathlib import Path
     from .view import load_prompt_and_meta, render_full_info
     from .listing import find_manifest, parse_manifest
 
-    meta_path, prompt_path, parsed_meta, issues = load_prompt_and_meta(prompt_id)
+    _, prompt_path, parsed_meta, issues = load_prompt_and_meta(prompt_id)
 
     if issues and parsed_meta is None:
         for issue in issues:
