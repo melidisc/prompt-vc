@@ -25,7 +25,7 @@
 
 ## Phase 2: Annotation Management
 
-- [ ] **Implement `annotate` command**
+- [x] **Implement `annotate` command**
   - Interactive mode: select line(s), enter rationale, source, tags
   - Compute content hash automatically
   - Append to meta file annotations list

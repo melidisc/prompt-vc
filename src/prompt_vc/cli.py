@@ -283,10 +283,36 @@ def view(prompt_id: str, annotated: bool, meta: bool) -> None:
 @main.command()
 @click.argument("prompt_id")
 @click.option("--line", "-l", type=int, help="Line number to annotate")
-def annotate(prompt_id: str, line: int | None) -> None:
+@click.option("--rationale", "-r", help="Why this text exists")
+@click.option("--source", "-s", help="URL or path to evidence")
+@click.option("--tags", "-t", help="Comma-separated tags")
+@click.option("--author", "-a", help="Author email")
+def annotate(
+    prompt_id: str,
+    line: int | None,
+    rationale: str | None,
+    source: str | None,
+    tags: str | None,
+    author: str | None,
+) -> None:
     """Add an annotation to a prompt."""
-    # TODO: Implement annotation
-    console.print("[yellow]⚠[/yellow] Annotate not yet implemented")
+    from .annotate import interactive_annotate
+
+    success, message = interactive_annotate(
+        prompt_id,
+        console,
+        line=line,
+        rationale=rationale,
+        source=source,
+        tags=tags,
+        author=author,
+    )
+
+    if success:
+        console.print(f"[green]✓[/green] {message}")
+    else:
+        console.print(f"[red]✗[/red] {message}")
+        raise SystemExit(1)
 
 
 @main.command()
