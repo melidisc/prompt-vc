@@ -31,7 +31,7 @@
   - Append to meta file annotations list
   - Generate unique annotation ID
 
-- [ ] **Implement `fix-annotations` command**
+- [x] **Implement `fix-annotations` command**
   - Detect orphaned annotations (hash doesn't match any content)
   - Fuzzy match to suggest where text may have moved
   - Interactive prompts to update, re-anchor, or remove
