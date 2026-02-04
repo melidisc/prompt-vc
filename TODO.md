@@ -19,13 +19,13 @@
   - Fall back to directory scanning if no manifest
   - Support filtering by domain, status, owner
 
-- [ ] **Implement `info` command**
+- [x] **Implement `info` command**
   - Display full metadata summary for a prompt
   - Show variables, assumptions, annotations, deployment info
 
 ## Phase 2: Annotation Management
 
-- [ ] **Implement `annotate` command**
+- [x] **Implement `annotate` command**
   - Interactive mode: select line(s), enter rationale, source, tags
   - Compute content hash automatically
   - Append to meta file annotations list

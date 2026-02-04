@@ -283,10 +283,36 @@ def view(prompt_id: str, annotated: bool, meta: bool) -> None:
 @main.command()
 @click.argument("prompt_id")
 @click.option("--line", "-l", type=int, help="Line number to annotate")
-def annotate(prompt_id: str, line: int | None) -> None:
+@click.option("--rationale", "-r", help="Why this text exists")
+@click.option("--source", "-s", help="URL or path to evidence")
+@click.option("--tags", "-t", help="Comma-separated tags")
+@click.option("--author", "-a", help="Author email")
+def annotate(
+    prompt_id: str,
+    line: int | None,
+    rationale: str | None,
+    source: str | None,
+    tags: str | None,
+    author: str | None,
+) -> None:
     """Add an annotation to a prompt."""
-    # TODO: Implement annotation
-    console.print("[yellow]⚠[/yellow] Annotate not yet implemented")
+    from .annotate import interactive_annotate
+
+    success, message = interactive_annotate(
+        prompt_id,
+        console,
+        line=line,
+        rationale=rationale,
+        source=source,
+        tags=tags,
+        author=author,
+    )
+
+    if success:
+        console.print(f"[green]✓[/green] {message}")
+    else:
+        console.print(f"[red]✗[/red] {message}")
+        raise SystemExit(1)
 
 
 @main.command()
@@ -300,8 +326,48 @@ def audit() -> None:
 @click.argument("prompt_id")
 def info(prompt_id: str) -> None:
     """Show detailed information about a prompt."""
-    # TODO: Implement info
-    console.print(f"[yellow]⚠[/yellow] Info not yet implemented for: {prompt_id}")
+    from .view import load_prompt_and_meta, render_full_info
+    from .listing import find_manifest, parse_manifest
+
+    _, prompt_path, parsed_meta, issues = load_prompt_and_meta(prompt_id)
+
+    if issues and parsed_meta is None:
+        for issue in issues:
+            console.print(f"[red]✗[/red] {issue}")
+        raise SystemExit(1)
+
+    if parsed_meta is None:
+        console.print(f"[red]✗[/red] Could not parse metadata for: {prompt_id}")
+        raise SystemExit(1)
+
+    # Try to get deployment info from manifest
+    deployed_to = None
+    domain = None
+    status = None
+
+    manifest_path = find_manifest()
+    if manifest_path:
+        manifest, _ = parse_manifest(manifest_path)
+        if manifest:
+            # Find this prompt in the manifest
+            for domain_name, domain_obj in manifest.domains.items():
+                for prompt_ref in domain_obj.prompts:
+                    if prompt_ref.id == parsed_meta.id:
+                        domain = domain_name
+                        status = prompt_ref.status
+                        deployed_to = prompt_ref.deployed_to
+                        break
+                if domain:
+                    break
+
+    render_full_info(
+        parsed_meta,
+        console,
+        prompt_path=prompt_path,
+        deployed_to=deployed_to,
+        domain=domain,
+        status=status,
+    )
 
 
 if __name__ == "__main__":

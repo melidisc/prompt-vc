@@ -15,7 +15,8 @@ src/prompt_vc/
 ├── hashing.py    # Content hashing for annotation anchoring
 ├── validation.py # Validation logic for prompts and metadata
 ├── view.py       # View/display functionality
-└── listing.py    # Prompt listing from manifest or directory
+├── listing.py    # Prompt listing from manifest or directory
+└── annotate.py   # Annotation creation and management
 ```
 
 ## Key Concepts
@@ -31,10 +32,10 @@ Implemented:
 - `prompt-vc validate [path]` - Validate prompts and metadata
 - `prompt-vc view <id> [--annotated] [--meta]` - View a prompt
 - `prompt-vc list [--domain] [--status] [--owner]` - List prompts
+- `prompt-vc info <id>` - Show detailed prompt information
+- `prompt-vc annotate <id> [--line] [--rationale] [--source] [--tags] [--author]` - Add annotations
 
 Stubbed (TODO):
-- `prompt-vc info <id>` - Show detailed prompt information
-- `prompt-vc annotate <id>` - Add annotations
 - `prompt-vc audit` - Check governance compliance
 
 ## Development
