@@ -5,12 +5,10 @@ from pathlib import Path
 
 from rich.console import Console
 from rich.markup import escape
-from rich.table import Table
 from ruamel.yaml import YAML
 
 from .hashing import extract_preview, find_similar_lines, find_text_in_file, hash_content
 from .models import Annotation, PromptMeta
-from .validation import find_prompt_file, parse_meta_file
 
 
 @dataclass
