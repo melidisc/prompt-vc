@@ -10,13 +10,14 @@ This file provides context for Claude Code when working on this project.
 
 ```
 src/prompt_vc/
-├── cli.py        # Click-based CLI commands
-├── models.py     # Pydantic models for meta and manifest schemas
-├── hashing.py    # Content hashing for annotation anchoring
-├── validation.py # Validation logic for prompts and metadata
-├── view.py       # View/display functionality
-├── listing.py    # Prompt listing from manifest or directory
-└── annotate.py   # Annotation creation and management
+├── cli.py             # Click-based CLI commands
+├── models.py          # Pydantic models for meta and manifest schemas
+├── hashing.py         # Content hashing for annotation anchoring
+├── validation.py      # Validation logic for prompts and metadata
+├── view.py            # View/display functionality
+├── listing.py         # Prompt listing from manifest or directory
+├── annotate.py        # Annotation creation and management
+└── fix_annotations.py # Fix orphaned annotations
 ```
 
 ## Key Concepts
@@ -34,6 +35,7 @@ Implemented:
 - `prompt-vc list [--domain] [--status] [--owner]` - List prompts
 - `prompt-vc info <id>` - Show detailed prompt information
 - `prompt-vc annotate <id> [--line] [--rationale] [--source] [--tags] [--author]` - Add annotations
+- `prompt-vc fix-annotations <id> [--auto-remove] [--dry-run]` - Fix orphaned annotations
 
 Stubbed (TODO):
 - `prompt-vc audit` - Check governance compliance

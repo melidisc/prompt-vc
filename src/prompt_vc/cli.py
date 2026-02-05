@@ -315,6 +315,28 @@ def annotate(
         raise SystemExit(1)
 
 
+@main.command("fix-annotations")
+@click.argument("prompt_id")
+@click.option("--auto-remove", is_flag=True, help="Automatically remove orphaned annotations")
+@click.option("--dry-run", is_flag=True, help="Show what would be done without making changes")
+def fix_annotations(prompt_id: str, auto_remove: bool, dry_run: bool) -> None:
+    """Fix orphaned annotations in a prompt."""
+    from .fix_annotations import interactive_fix_annotations
+
+    success, message = interactive_fix_annotations(
+        prompt_id,
+        console,
+        auto_remove=auto_remove,
+        dry_run=dry_run,
+    )
+
+    if success:
+        console.print(f"[green]✓[/green] {message}")
+    else:
+        console.print(f"[red]✗[/red] {message}")
+        raise SystemExit(1)
+
+
 @main.command()
 def audit() -> None:
     """Check governance compliance across all prompts."""
