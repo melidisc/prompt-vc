@@ -386,10 +386,80 @@ def fix_annotations(prompt_id: str, auto_remove: bool, dry_run: bool) -> None:
 
 
 @main.command()
-def audit() -> None:
+@click.option("--status", "-s", default="production", help="Status to audit (default: production)")
+@click.option("--all", "-a", "audit_all", is_flag=True, help="Audit all prompts regardless of status")
+def audit(status: str, audit_all: bool) -> None:
     """Check governance compliance across all prompts."""
-    # TODO: Implement audit
-    console.print("[yellow]⚠[/yellow] Audit not yet implemented")
+    from .audit import run_audit
+
+    status_filter = None if audit_all else status
+    report = run_audit(status_filter=status_filter)
+
+    if not report.manifest_path:
+        console.print("[red]✗[/red] No manifest found. Audit requires a prompts.manifest.yaml file.")
+        raise SystemExit(1)
+
+    if not report.requirements:
+        console.print("[yellow]⚠[/yellow] No governance requirements defined in manifest.")
+        raise SystemExit(0)
+
+    # Show requirements being checked
+    console.print("\n[bold]Governance Requirements:[/bold]")
+    req = report.requirements
+    console.print(f"  • must_have_intent: {req.must_have_intent}")
+    console.print(f"  • must_have_evaluation: {req.must_have_evaluation}")
+    console.print(f"  • min_annotations: {req.min_annotations}")
+    if req.required_tags:
+        console.print(f"  • required_tags: {', '.join(req.required_tags)}")
+    console.print()
+
+    if not report.results:
+        filter_msg = f"with status '{status}'" if not audit_all else ""
+        console.print(f"[yellow]⚠[/yellow] No prompts found {filter_msg}.")
+        raise SystemExit(0)
+
+    # Build results table
+    table = Table(title=f"Audit Results ({status_filter or 'all'} prompts)")
+    table.add_column("Prompt", style="cyan")
+    table.add_column("Domain")
+    table.add_column("Status")
+    table.add_column("Compliant", justify="center")
+    table.add_column("Issues")
+
+    for result in report.results:
+        if result.skipped:
+            compliant_str = "[yellow]SKIPPED[/yellow]"
+            issues_str = result.skip_reason or "Unknown"
+        elif result.compliant:
+            compliant_str = "[green]✓[/green]"
+            issues_str = ""
+        else:
+            compliant_str = "[red]✗[/red]"
+            issues_str = "; ".join(i.message for i in result.issues)
+
+        table.add_row(
+            result.prompt_id,
+            result.domain or "-",
+            result.status,
+            compliant_str,
+            issues_str,
+        )
+
+    console.print(table)
+
+    # Summary
+    console.print()
+    if report.non_compliant_count == 0 and report.skipped_count == 0:
+        console.print(f"[green]✓[/green] All {report.compliant_count} prompts are compliant.")
+    else:
+        console.print("[bold]Summary:[/bold]")
+        console.print(f"  Compliant: {report.compliant_count}")
+        console.print(f"  Non-compliant: {report.non_compliant_count}")
+        if report.skipped_count > 0:
+            console.print(f"  Skipped: {report.skipped_count}")
+
+    if report.non_compliant_count > 0:
+        raise SystemExit(1)
 
 
 @main.command()
