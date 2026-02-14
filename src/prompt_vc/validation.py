@@ -346,3 +346,150 @@ def validate_all(path: Path | None = None) -> list[ValidationResult]:
         results.append(result)
 
     return results
+
+
+@dataclass
+class HashCheckResult:
+    """Result of checking annotation hashes."""
+
+    annotation_id: str
+    status: str  # "valid", "moved", "orphaned"
+    original_line: int | None
+    found_line: int | None = None
+    message: str = ""
+
+
+def check_annotation_hashes(
+    meta: PromptMeta,
+    prompt_path: Path,
+) -> list[HashCheckResult]:
+    """Check all annotation hashes and report their status.
+
+    Args:
+        meta: Parsed prompt metadata
+        prompt_path: Path to the prompt file
+
+    Returns:
+        List of HashCheckResult for each annotation
+    """
+    from .hashing import find_text_in_file
+
+    results: list[HashCheckResult] = []
+
+    if not meta.annotations:
+        return results
+
+    for annotation in meta.annotations:
+        target_hash = annotation.anchor.hash
+        line_hint = annotation.anchor.line_hint
+
+        # Try to find the text by hash
+        found_line, _ = find_text_in_file(str(prompt_path), target_hash)
+
+        if found_line is not None:
+            if line_hint is not None and found_line != line_hint:
+                # Content moved to different line
+                results.append(HashCheckResult(
+                    annotation_id=annotation.id,
+                    status="moved",
+                    original_line=line_hint,
+                    found_line=found_line,
+                    message=f"Content moved from line {line_hint} to line {found_line}",
+                ))
+            else:
+                # Valid - hash matches and line is correct
+                results.append(HashCheckResult(
+                    annotation_id=annotation.id,
+                    status="valid",
+                    original_line=line_hint,
+                    found_line=found_line,
+                ))
+        else:
+            # Orphaned - hash doesn't match any content
+            results.append(HashCheckResult(
+                annotation_id=annotation.id,
+                status="orphaned",
+                original_line=line_hint,
+                message=f"Hash does not match any content in file",
+            ))
+
+    return results
+
+
+def auto_update_line_hints(
+    meta_path: Path,
+    prompt_path: Path,
+    meta: PromptMeta,
+) -> list[str]:
+    """Auto-update line_hint values for annotations where content has moved.
+
+    Args:
+        meta_path: Path to the meta file
+        prompt_path: Path to the prompt file
+        meta: Parsed prompt metadata
+
+    Returns:
+        List of annotation IDs that were updated
+    """
+    from ruamel.yaml import YAML
+
+    results = check_annotation_hashes(meta, prompt_path)
+    moved = [r for r in results if r.status == "moved"]
+
+    if not moved:
+        return []
+
+    # Load and update the meta file
+    yaml = YAML()
+    yaml.preserve_quotes = True
+    yaml.indent(mapping=2, sequence=2, offset=2)
+
+    with open(meta_path, "r", encoding="utf-8") as f:
+        raw_data = yaml.load(f)
+
+    if raw_data is None or "annotations" not in raw_data:
+        return []
+
+    updated_ids = []
+    for result in moved:
+        for ann in raw_data["annotations"]:
+            if ann.get("id") == result.annotation_id:
+                ann["anchor"]["line_hint"] = result.found_line
+                updated_ids.append(result.annotation_id)
+                break
+
+    if updated_ids:
+        with open(meta_path, "w", encoding="utf-8") as f:
+            yaml.dump(raw_data, f)
+
+    return updated_ids
+
+
+def get_hash_warnings(
+    meta: PromptMeta,
+    prompt_path: Path,
+) -> list[str]:
+    """Get warning messages for stale annotation hashes.
+
+    Args:
+        meta: Parsed prompt metadata
+        prompt_path: Path to the prompt file
+
+    Returns:
+        List of warning messages
+    """
+    results = check_annotation_hashes(meta, prompt_path)
+    warnings = []
+
+    for result in results:
+        if result.status == "moved":
+            warnings.append(
+                f"Annotation '{result.annotation_id}' line_hint is stale: "
+                f"content moved from line {result.original_line} to {result.found_line}"
+            )
+        elif result.status == "orphaned":
+            warnings.append(
+                f"Annotation '{result.annotation_id}' is orphaned: {result.message}"
+            )
+
+    return warnings
