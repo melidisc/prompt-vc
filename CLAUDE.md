@@ -30,9 +30,11 @@ src/prompt_vc/
 ## CLI Commands
 
 Implemented:
-- `prompt-vc validate [path]` - Validate prompts and metadata
+- `prompt-vc init [--with-manifest]` - Initialize a prompt-vc repository
+- `prompt-vc new <id> [--domain] [--format]` - Create a new prompt with metadata file
+- `prompt-vc validate [path] [--strict]` - Validate prompts and metadata
 - `prompt-vc view <id> [--annotated] [--meta] [--auto-fix]` - View a prompt (shows hash warnings)
-- `prompt-vc list [--domain] [--status] [--owner]` - List prompts
+- `prompt-vc list [--domain] [--status] [--owner] [--path]` - List prompts
 - `prompt-vc info <id> [--auto-fix]` - Show detailed prompt information (shows hash warnings)
 - `prompt-vc annotate <id> [--line] [--rationale] [--source] [--tags] [--author]` - Add annotations
 - `prompt-vc fix-annotations <id> [--auto-remove] [--dry-run]` - Fix orphaned annotations
