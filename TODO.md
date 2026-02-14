@@ -36,7 +36,7 @@
   - Fuzzy match to suggest where text may have moved
   - Interactive prompts to update, re-anchor, or remove
 
-- [ ] **Hash verification on every command**
+- [x] **Hash verification on every command**
   - Warn if any annotation hash is stale
   - Auto-update `line_hint` when content is found at different line
 

@@ -7,6 +7,47 @@ from rich.table import Table
 console = Console()
 
 
+def show_hash_warnings(
+    prompt_path: "Path",
+    meta: "PromptMeta",
+    auto_fix: bool = False,
+    meta_path: "Path | None" = None,
+) -> "PromptMeta | None":
+    """Display warnings about stale annotation hashes.
+
+    Args:
+        prompt_path: Path to the prompt file
+        meta: Parsed prompt metadata
+        auto_fix: If True, auto-update line_hint values
+        meta_path: Path to meta file (required if auto_fix is True)
+
+    Returns:
+        Updated PromptMeta if auto_fix was applied, otherwise None
+    """
+    from .validation import get_hash_warnings, auto_update_line_hints
+
+    if not meta.annotations:
+        return None
+
+    warnings = get_hash_warnings(meta, prompt_path)
+    updated_meta = None
+
+    if auto_fix and meta_path:
+        updated = auto_update_line_hints(meta_path, prompt_path, meta)
+        if updated:
+            console.print(f"[green]✓[/green] Auto-updated line_hint for: {', '.join(updated)}")
+            # Re-check for remaining warnings with fresh meta
+            from .validation import parse_meta_file
+            updated_meta, _ = parse_meta_file(meta_path)
+            if updated_meta:
+                warnings = get_hash_warnings(updated_meta, prompt_path)
+
+    for warning in warnings:
+        console.print(f"[yellow]⚠[/yellow] {warning}")
+
+    return updated_meta
+
+
 @click.group()
 @click.version_option()
 def main() -> None:
@@ -232,7 +273,8 @@ def list_prompts(domain: str | None, status: str | None, owner: str | None, path
 @click.argument("prompt_id")
 @click.option("--annotated", "-a", is_flag=True, help="Show annotations inline")
 @click.option("--meta", "-m", is_flag=True, help="Show metadata summary")
-def view(prompt_id: str, annotated: bool, meta: bool) -> None:
+@click.option("--auto-fix", is_flag=True, help="Auto-update stale line_hint values")
+def view(prompt_id: str, annotated: bool, meta: bool, auto_fix: bool) -> None:
     """View a prompt with optional annotation overlay."""
     from .view import (
         load_prompt_and_meta,
@@ -250,6 +292,12 @@ def view(prompt_id: str, annotated: bool, meta: bool) -> None:
     if parsed_meta is None:
         console.print(f"[red]✗[/red] Could not parse metadata for: {prompt_id}")
         raise SystemExit(1)
+
+    # Show hash warnings (and auto-fix if requested)
+    if prompt_path:
+        updated_meta = show_hash_warnings(prompt_path, parsed_meta, auto_fix=auto_fix, meta_path=meta_path)
+        if updated_meta:
+            parsed_meta = updated_meta
 
     # Show metadata summary if requested
     if meta:
@@ -346,12 +394,13 @@ def audit() -> None:
 
 @main.command()
 @click.argument("prompt_id")
-def info(prompt_id: str) -> None:
+@click.option("--auto-fix", is_flag=True, help="Auto-update stale line_hint values")
+def info(prompt_id: str, auto_fix: bool) -> None:
     """Show detailed information about a prompt."""
     from .view import load_prompt_and_meta, render_full_info
     from .listing import find_manifest, parse_manifest
 
-    _, prompt_path, parsed_meta, issues = load_prompt_and_meta(prompt_id)
+    meta_path, prompt_path, parsed_meta, issues = load_prompt_and_meta(prompt_id)
 
     if issues and parsed_meta is None:
         for issue in issues:
@@ -361,6 +410,12 @@ def info(prompt_id: str) -> None:
     if parsed_meta is None:
         console.print(f"[red]✗[/red] Could not parse metadata for: {prompt_id}")
         raise SystemExit(1)
+
+    # Show hash warnings (and auto-fix if requested)
+    if prompt_path:
+        updated_meta = show_hash_warnings(prompt_path, parsed_meta, auto_fix=auto_fix, meta_path=meta_path)
+        if updated_meta:
+            parsed_meta = updated_meta
 
     # Try to get deployment info from manifest
     deployed_to = None
