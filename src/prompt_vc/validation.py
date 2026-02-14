@@ -165,16 +165,17 @@ def verify_annotation_hashes(
     """Verify that annotation hashes match content in the prompt file.
 
     Returns list of issues for orphaned or mismatched annotations.
+    Uses check_annotation_hashes() internally and converts results to ValidationIssue.
     """
     issues: list[ValidationIssue] = []
 
     if not meta.annotations:
         return issues
 
+    # Load prompt lines for suggestion generation on orphaned annotations
     try:
         with open(prompt_path, "r", encoding="utf-8") as f:
-            prompt_content = f.read()
-            prompt_lines = prompt_content.splitlines()
+            prompt_lines = f.read().splitlines()
     except OSError as e:
         issues.append(ValidationIssue(
             level="error",
@@ -183,41 +184,39 @@ def verify_annotation_hashes(
         ))
         return issues
 
-    for annotation in meta.annotations:
-        anchor = annotation.anchor
-        target_hash = anchor.hash
-        preview = anchor.preview
-        line_hint = anchor.line_hint
+    # Use shared hash checking logic
+    results = check_annotation_hashes(meta, prompt_path)
 
-        # Try to find the text by hash
-        found_line, found_text = find_text_in_file(str(prompt_path), target_hash)
+    # Build annotation lookup for preview text
+    annotation_map = {a.id: a for a in meta.annotations}
 
-        if found_line is not None:
-            # Hash matches, check if line_hint needs updating
-            if line_hint is not None and found_line != line_hint:
-                issues.append(ValidationIssue(
-                    level="warning",
-                    file=str(meta_path),
-                    message=f"Annotation '{annotation.id}' line_hint is {line_hint} but content found at line {found_line}",
-                    line=line_hint,
-                    annotation_id=annotation.id
-                ))
-        else:
-            # Hash doesn't match - orphaned annotation
+    for result in results:
+        if result.status == "moved":
+            issues.append(ValidationIssue(
+                level="warning",
+                file=str(meta_path),
+                message=f"Annotation '{result.annotation_id}' line_hint is {result.original_line} but content found at line {result.found_line}",
+                line=result.original_line,
+                annotation_id=result.annotation_id
+            ))
+        elif result.status == "orphaned":
             # Try to find similar content by preview text
             suggestion = ""
-            if preview and line_hint is not None and 1 <= line_hint <= len(prompt_lines):
-                # Check if preview text exists at or near the hinted line
-                actual_line = prompt_lines[line_hint - 1]
-                if preview in actual_line or preview[:30] in actual_line:
-                    suggestion = f" Content appears modified at line {line_hint}."
+            annotation = annotation_map.get(result.annotation_id)
+            if annotation and annotation.anchor.preview and result.original_line:
+                preview = annotation.anchor.preview
+                line_hint = result.original_line
+                if 1 <= line_hint <= len(prompt_lines):
+                    actual_line = prompt_lines[line_hint - 1]
+                    if preview in actual_line or preview[:30] in actual_line:
+                        suggestion = f" Content appears modified at line {line_hint}."
 
             issues.append(ValidationIssue(
                 level="error",
                 file=str(meta_path),
-                message=f"Orphaned annotation '{annotation.id}': hash does not match any content in prompt file.{suggestion}",
-                line=line_hint,
-                annotation_id=annotation.id
+                message=f"Orphaned annotation '{result.annotation_id}': hash does not match any content in prompt file.{suggestion}",
+                line=result.original_line,
+                annotation_id=result.annotation_id
             ))
 
     return issues
@@ -372,8 +371,6 @@ def check_annotation_hashes(
     Returns:
         List of HashCheckResult for each annotation
     """
-    from .hashing import find_text_in_file
-
     results: list[HashCheckResult] = []
 
     if not meta.annotations:

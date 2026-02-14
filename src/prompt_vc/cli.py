@@ -7,7 +7,12 @@ from rich.table import Table
 console = Console()
 
 
-def show_hash_warnings(prompt_path, meta, auto_fix: bool = False, meta_path=None) -> None:
+def show_hash_warnings(
+    prompt_path: "Path",
+    meta: "PromptMeta",
+    auto_fix: bool = False,
+    meta_path: "Path | None" = None,
+) -> "PromptMeta | None":
     """Display warnings about stale annotation hashes.
 
     Args:
@@ -15,26 +20,32 @@ def show_hash_warnings(prompt_path, meta, auto_fix: bool = False, meta_path=None
         meta: Parsed prompt metadata
         auto_fix: If True, auto-update line_hint values
         meta_path: Path to meta file (required if auto_fix is True)
+
+    Returns:
+        Updated PromptMeta if auto_fix was applied, otherwise None
     """
     from .validation import get_hash_warnings, auto_update_line_hints
 
     if not meta.annotations:
-        return
+        return None
 
     warnings = get_hash_warnings(meta, prompt_path)
+    updated_meta = None
 
     if auto_fix and meta_path:
         updated = auto_update_line_hints(meta_path, prompt_path, meta)
         if updated:
             console.print(f"[green]✓[/green] Auto-updated line_hint for: {', '.join(updated)}")
-            # Re-check for remaining warnings
+            # Re-check for remaining warnings with fresh meta
             from .validation import parse_meta_file
-            meta, _ = parse_meta_file(meta_path)
-            if meta:
-                warnings = get_hash_warnings(meta, prompt_path)
+            updated_meta, _ = parse_meta_file(meta_path)
+            if updated_meta:
+                warnings = get_hash_warnings(updated_meta, prompt_path)
 
     for warning in warnings:
         console.print(f"[yellow]⚠[/yellow] {warning}")
+
+    return updated_meta
 
 
 @click.group()
@@ -282,13 +293,11 @@ def view(prompt_id: str, annotated: bool, meta: bool, auto_fix: bool) -> None:
         console.print(f"[red]✗[/red] Could not parse metadata for: {prompt_id}")
         raise SystemExit(1)
 
-    # Show hash warnings
-    if prompt_path and parsed_meta.annotations:
-        show_hash_warnings(prompt_path, parsed_meta, auto_fix=auto_fix, meta_path=meta_path)
-        if auto_fix:
-            # Reload meta after auto-fix
-            from .validation import parse_meta_file
-            parsed_meta, _ = parse_meta_file(meta_path)
+    # Show hash warnings (and auto-fix if requested)
+    if prompt_path:
+        updated_meta = show_hash_warnings(prompt_path, parsed_meta, auto_fix=auto_fix, meta_path=meta_path)
+        if updated_meta:
+            parsed_meta = updated_meta
 
     # Show metadata summary if requested
     if meta:
@@ -402,13 +411,11 @@ def info(prompt_id: str, auto_fix: bool) -> None:
         console.print(f"[red]✗[/red] Could not parse metadata for: {prompt_id}")
         raise SystemExit(1)
 
-    # Show hash warnings
-    if prompt_path and parsed_meta.annotations:
-        show_hash_warnings(prompt_path, parsed_meta, auto_fix=auto_fix, meta_path=meta_path)
-        if auto_fix:
-            # Reload meta after auto-fix
-            from .validation import parse_meta_file
-            parsed_meta, _ = parse_meta_file(meta_path)
+    # Show hash warnings (and auto-fix if requested)
+    if prompt_path:
+        updated_meta = show_hash_warnings(prompt_path, parsed_meta, auto_fix=auto_fix, meta_path=meta_path)
+        if updated_meta:
+            parsed_meta = updated_meta
 
     # Try to get deployment info from manifest
     deployed_to = None
