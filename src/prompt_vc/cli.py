@@ -399,6 +399,10 @@ def audit(status: str, audit_all: bool) -> None:
         console.print("[red]✗[/red] No manifest found. Audit requires a prompts.manifest.yaml file.")
         raise SystemExit(1)
 
+    if report.error:
+        console.print(f"[red]✗[/red] Failed to parse manifest: {report.error}")
+        raise SystemExit(1)
+
     if not report.requirements:
         console.print("[yellow]⚠[/yellow] No governance requirements defined in manifest.")
         raise SystemExit(0)

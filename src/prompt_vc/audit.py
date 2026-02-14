@@ -3,9 +3,23 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import re
+
 from .listing import find_manifest, list_from_manifest, parse_manifest
-from .models import Manifest, ProductionRequirements, PromptMeta
-from .validation import find_prompt_file, parse_meta_file
+from .models import ProductionRequirements, PromptMeta
+from .validation import parse_meta_file
+
+
+# Pattern to match any .prompt.* extension and convert to .prompt.meta.yaml
+PROMPT_EXT_PATTERN = re.compile(r"\.prompt\.[^.]+$")
+
+
+def _get_meta_path_from_prompt_path(prompt_path: str) -> str:
+    """Convert a prompt file path to its corresponding meta file path.
+
+    Handles all prompt extensions: .prompt.md, .prompt.jinja, .prompt.txt, etc.
+    """
+    return PROMPT_EXT_PATTERN.sub(".prompt.meta.yaml", prompt_path)
 
 
 @dataclass
@@ -38,6 +52,7 @@ class AuditReport:
     manifest_path: str | None
     requirements: ProductionRequirements | None
     results: list[PromptAuditResult] = field(default_factory=list)
+    error: str | None = None
 
     @property
     def total_prompts(self) -> int:
@@ -192,12 +207,13 @@ def run_audit(
             results=[],
         )
 
-    manifest, error = parse_manifest(manifest_path)
+    manifest, parse_error = parse_manifest(manifest_path)
     if manifest is None:
         return AuditReport(
             manifest_path=str(manifest_path),
             requirements=None,
             results=[],
+            error=parse_error,
         )
 
     # Get production requirements
@@ -220,9 +236,7 @@ def run_audit(
 
     for prompt_info in prompts:
         # Find the meta file
-        meta_path = manifest_dir / prompt_info.path.replace(
-            ".prompt.md", ".prompt.meta.yaml"
-        ).replace(".prompt.jinja", ".prompt.meta.yaml")
+        meta_path = manifest_dir / _get_meta_path_from_prompt_path(prompt_info.path)
 
         if not meta_path.exists():
             results.append(PromptAuditResult(
