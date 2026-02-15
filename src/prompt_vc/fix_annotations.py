@@ -45,10 +45,12 @@ def detect_orphaned_annotations(
                 annotation.anchor.preview,
                 threshold=0.4,  # Lower threshold for more suggestions
             )
-            orphaned.append(OrphanedAnnotation(
-                annotation=annotation,
-                suggestions=suggestions[:5],  # Top 5 suggestions
-            ))
+            orphaned.append(
+                OrphanedAnnotation(
+                    annotation=annotation,
+                    suggestions=suggestions[:5],  # Top 5 suggestions
+                )
+            )
 
     return orphaned
 
@@ -109,8 +111,7 @@ def remove_annotation_from_meta(
         return
 
     raw_data["annotations"] = [
-        ann for ann in raw_data["annotations"]
-        if ann.get("id") != annotation_id
+        ann for ann in raw_data["annotations"] if ann.get("id") != annotation_id
     ]
 
     with open(meta_path, "w", encoding="utf-8") as f:
@@ -131,7 +132,7 @@ def display_orphaned_annotation(
     """
     ann = orphan.annotation
     console.print(f"\n[yellow bold]({index}) {escape(ann.id)}[/yellow bold]")
-    console.print(f"  Preview: \"{escape(ann.anchor.preview)}\"")
+    console.print(f'  Preview: "{escape(ann.anchor.preview)}"')
     if ann.anchor.line_hint:
         console.print(f"  Original line: {ann.anchor.line_hint}")
     if ann.rationale:
@@ -141,7 +142,7 @@ def display_orphaned_annotation(
         console.print("\n  [cyan]Possible matches:[/cyan]")
         for i, (line_num, text, score) in enumerate(orphan.suggestions, 1):
             pct = int(score * 100)
-            console.print(f"    [{i}] Line {line_num} ({pct}% match): \"{escape(text[:60])}...\"")
+            console.print(f'    [{i}] Line {line_num} ({pct}% match): "{escape(text[:60])}..."')
     else:
         console.print("  [dim]No similar lines found[/dim]")
 

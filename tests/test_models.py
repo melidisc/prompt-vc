@@ -1,6 +1,5 @@
 """Tests for prompt_vc.models."""
 
-
 from prompt_vc.models import (
     Anchor,
     Annotation,
@@ -234,9 +233,7 @@ class TestGovernance:
     """Tests for Governance model."""
 
     def test_governance_with_requirements(self) -> None:
-        gov = Governance(
-            production_requirements=ProductionRequirements(must_have_intent=True)
-        )
+        gov = Governance(production_requirements=ProductionRequirements(must_have_intent=True))
         assert gov.production_requirements is not None
         assert gov.production_requirements.must_have_intent is True
 

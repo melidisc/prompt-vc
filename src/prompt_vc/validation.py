@@ -56,7 +56,7 @@ def find_prompt_file(meta_path: Path) -> Path | None:
     if not name.endswith(".prompt.meta.yaml"):
         return None
 
-    base = name[:-len(".prompt.meta.yaml")]
+    base = name[: -len(".prompt.meta.yaml")]
     parent = meta_path.parent
 
     # Look for matching prompt files
@@ -81,26 +81,20 @@ def parse_meta_file(meta_path: Path) -> tuple[PromptMeta | None, list[Validation
         with open(meta_path, encoding="utf-8") as f:
             raw_data = yaml.safe_load(f)
     except yaml.YAMLError as e:
-        issues.append(ValidationIssue(
-            level="error",
-            file=str(meta_path),
-            message=f"Invalid YAML: {e}"
-        ))
+        issues.append(
+            ValidationIssue(level="error", file=str(meta_path), message=f"Invalid YAML: {e}")
+        )
         return None, issues
     except OSError as e:
-        issues.append(ValidationIssue(
-            level="error",
-            file=str(meta_path),
-            message=f"Cannot read file: {e}"
-        ))
+        issues.append(
+            ValidationIssue(level="error", file=str(meta_path), message=f"Cannot read file: {e}")
+        )
         return None, issues
 
     if raw_data is None:
-        issues.append(ValidationIssue(
-            level="error",
-            file=str(meta_path),
-            message="Empty meta file"
-        ))
+        issues.append(
+            ValidationIssue(level="error", file=str(meta_path), message="Empty meta file")
+        )
         return None, issues
 
     try:
@@ -109,11 +103,13 @@ def parse_meta_file(meta_path: Path) -> tuple[PromptMeta | None, list[Validation
     except ValidationError as e:
         for error in e.errors():
             loc = ".".join(str(x) for x in error["loc"])
-            issues.append(ValidationIssue(
-                level="error",
-                file=str(meta_path),
-                message=f"Schema error at '{loc}': {error['msg']}"
-            ))
+            issues.append(
+                ValidationIssue(
+                    level="error",
+                    file=str(meta_path),
+                    message=f"Schema error at '{loc}': {error['msg']}",
+                )
+            )
         return None, issues
 
 
@@ -141,9 +137,27 @@ def extract_variables_from_prompt(prompt_content: str) -> set[str]:
 
     # Jinja2 control flow keywords to skip
     jinja_keywords = {
-        "if", "else", "endif", "for", "endfor", "include", "block",
-        "endblock", "extends", "macro", "endmacro", "set", "raw", "endraw",
-        "loop", "true", "false", "none", "True", "False", "None"
+        "if",
+        "else",
+        "endif",
+        "for",
+        "endfor",
+        "include",
+        "block",
+        "endblock",
+        "extends",
+        "macro",
+        "endmacro",
+        "set",
+        "raw",
+        "endraw",
+        "loop",
+        "true",
+        "false",
+        "none",
+        "True",
+        "False",
+        "None",
     }
 
     for match in re.finditer(pattern, prompt_content):
@@ -156,9 +170,7 @@ def extract_variables_from_prompt(prompt_content: str) -> set[str]:
 
 
 def verify_annotation_hashes(
-    meta: PromptMeta,
-    prompt_path: Path,
-    meta_path: Path
+    meta: PromptMeta, prompt_path: Path, meta_path: Path
 ) -> list[ValidationIssue]:
     """Verify that annotation hashes match content in the prompt file.
 
@@ -175,11 +187,13 @@ def verify_annotation_hashes(
         with open(prompt_path, encoding="utf-8") as f:
             prompt_lines = f.read().splitlines()
     except OSError as e:
-        issues.append(ValidationIssue(
-            level="error",
-            file=str(meta_path),
-            message=f"Cannot read prompt file for hash verification: {e}"
-        ))
+        issues.append(
+            ValidationIssue(
+                level="error",
+                file=str(meta_path),
+                message=f"Cannot read prompt file for hash verification: {e}",
+            )
+        )
         return issues
 
     # Use shared hash checking logic
@@ -190,16 +204,18 @@ def verify_annotation_hashes(
 
     for result in results:
         if result.status == "moved":
-            issues.append(ValidationIssue(
-                level="warning",
-                file=str(meta_path),
-                message=(
-                    f"Annotation '{result.annotation_id}' line_hint is "
-                    f"{result.original_line} but content found at line {result.found_line}"
-                ),
-                line=result.original_line,
-                annotation_id=result.annotation_id
-            ))
+            issues.append(
+                ValidationIssue(
+                    level="warning",
+                    file=str(meta_path),
+                    message=(
+                        f"Annotation '{result.annotation_id}' line_hint is "
+                        f"{result.original_line} but content found at line {result.found_line}"
+                    ),
+                    line=result.original_line,
+                    annotation_id=result.annotation_id,
+                )
+            )
         elif result.status == "orphaned":
             # Try to find similar content by preview text
             suggestion = ""
@@ -212,24 +228,24 @@ def verify_annotation_hashes(
                     if preview in actual_line or preview[:30] in actual_line:
                         suggestion = f" Content appears modified at line {line_hint}."
 
-            issues.append(ValidationIssue(
-                level="error",
-                file=str(meta_path),
-                message=(
-                    f"Orphaned annotation '{result.annotation_id}': "
-                    f"hash does not match any content in prompt file.{suggestion}"
-                ),
-                line=result.original_line,
-                annotation_id=result.annotation_id
-            ))
+            issues.append(
+                ValidationIssue(
+                    level="error",
+                    file=str(meta_path),
+                    message=(
+                        f"Orphaned annotation '{result.annotation_id}': "
+                        f"hash does not match any content in prompt file.{suggestion}"
+                    ),
+                    line=result.original_line,
+                    annotation_id=result.annotation_id,
+                )
+            )
 
     return issues
 
 
 def check_variable_references(
-    meta: PromptMeta,
-    prompt_path: Path,
-    meta_path: Path
+    meta: PromptMeta, prompt_path: Path, meta_path: Path
 ) -> list[ValidationIssue]:
     """Check that variables used in the prompt are defined in metadata.
 
@@ -250,20 +266,24 @@ def check_variable_references(
     # Check for undefined variables (used but not defined)
     undefined = used_vars - defined_vars
     for var in sorted(undefined):
-        issues.append(ValidationIssue(
-            level="error",
-            file=str(meta_path),
-            message=f"Variable '{var}' used in prompt but not defined in meta"
-        ))
+        issues.append(
+            ValidationIssue(
+                level="error",
+                file=str(meta_path),
+                message=f"Variable '{var}' used in prompt but not defined in meta",
+            )
+        )
 
     # Check for unused variables (defined but not used) - warning only
     unused = defined_vars - used_vars
     for var in sorted(unused):
-        issues.append(ValidationIssue(
-            level="warning",
-            file=str(meta_path),
-            message=f"Variable '{var}' defined in meta but not used in prompt"
-        ))
+        issues.append(
+            ValidationIssue(
+                level="warning",
+                file=str(meta_path),
+                message=f"Variable '{var}' defined in meta but not used in prompt",
+            )
+        )
 
     return issues
 
@@ -279,8 +299,7 @@ def validate_prompt(meta_path: Path) -> ValidationResult:
     """
     prompt_path = find_prompt_file(meta_path)
     result = ValidationResult(
-        meta_file=str(meta_path),
-        prompt_file=str(prompt_path) if prompt_path else None
+        meta_file=str(meta_path), prompt_file=str(prompt_path) if prompt_path else None
     )
 
     # Parse and validate the meta file
@@ -293,11 +312,13 @@ def validate_prompt(meta_path: Path) -> ValidationResult:
 
     # Check if prompt file exists
     if prompt_path is None or not prompt_path.exists():
-        result.issues.append(ValidationIssue(
-            level="error",
-            file=str(meta_path),
-            message="No corresponding prompt file found for meta file"
-        ))
+        result.issues.append(
+            ValidationIssue(
+                level="error",
+                file=str(meta_path),
+                message="No corresponding prompt file found for meta file",
+            )
+        )
         return result
 
     # Verify annotation hashes
@@ -390,29 +411,35 @@ def check_annotation_hashes(
         if found_line is not None:
             if line_hint is not None and found_line != line_hint:
                 # Content moved to different line
-                results.append(HashCheckResult(
-                    annotation_id=annotation.id,
-                    status="moved",
-                    original_line=line_hint,
-                    found_line=found_line,
-                    message=f"Content moved from line {line_hint} to line {found_line}",
-                ))
+                results.append(
+                    HashCheckResult(
+                        annotation_id=annotation.id,
+                        status="moved",
+                        original_line=line_hint,
+                        found_line=found_line,
+                        message=f"Content moved from line {line_hint} to line {found_line}",
+                    )
+                )
             else:
                 # Valid - hash matches and line is correct
-                results.append(HashCheckResult(
-                    annotation_id=annotation.id,
-                    status="valid",
-                    original_line=line_hint,
-                    found_line=found_line,
-                ))
+                results.append(
+                    HashCheckResult(
+                        annotation_id=annotation.id,
+                        status="valid",
+                        original_line=line_hint,
+                        found_line=found_line,
+                    )
+                )
         else:
             # Orphaned - hash doesn't match any content
-            results.append(HashCheckResult(
-                annotation_id=annotation.id,
-                status="orphaned",
-                original_line=line_hint,
-                message="Hash does not match any content in file",
-            ))
+            results.append(
+                HashCheckResult(
+                    annotation_id=annotation.id,
+                    status="orphaned",
+                    original_line=line_hint,
+                    message="Hash does not match any content in file",
+                )
+            )
 
     return results
 
@@ -489,8 +516,6 @@ def get_hash_warnings(
                 f"content moved from line {result.original_line} to {result.found_line}"
             )
         elif result.status == "orphaned":
-            warnings.append(
-                f"Annotation '{result.annotation_id}' is orphaned: {result.message}"
-            )
+            warnings.append(f"Annotation '{result.annotation_id}' is orphaned: {result.message}")
 
     return warnings

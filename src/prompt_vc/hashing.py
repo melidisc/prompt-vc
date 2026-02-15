@@ -51,7 +51,7 @@ def extract_preview(text: str, max_length: int = 50) -> str:
     if len(preview) <= max_length:
         return preview
 
-    return preview[:max_length - 3] + "..."
+    return preview[: max_length - 3] + "..."
 
 
 def find_text_in_file(filepath: str, target_hash: str) -> tuple[int | None, str | None]:
@@ -112,9 +112,7 @@ def similarity_score(text1: str, text2: str) -> float:
 
 
 def find_similar_lines(
-    filepath: str,
-    target_text: str,
-    threshold: float = 0.6
+    filepath: str, target_text: str, threshold: float = 0.6
 ) -> list[tuple[int, str, float]]:
     """Find lines similar to target text.
 

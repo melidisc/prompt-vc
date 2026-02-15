@@ -86,22 +86,28 @@ def validate_variables(
     for var_name, var_def in meta.variables.items():
         if var_def.required and var_name not in context:
             if var_def.default is None:
-                validations.append(VariableValidation(
-                    name=var_name,
-                    valid=False,
-                    message=f"Required variable '{var_name}' is missing",
-                ))
+                validations.append(
+                    VariableValidation(
+                        name=var_name,
+                        valid=False,
+                        message=f"Required variable '{var_name}' is missing",
+                    )
+                )
             else:
-                validations.append(VariableValidation(
+                validations.append(
+                    VariableValidation(
+                        name=var_name,
+                        valid=True,
+                        message=f"Using default value for '{var_name}'",
+                    )
+                )
+        else:
+            validations.append(
+                VariableValidation(
                     name=var_name,
                     valid=True,
-                    message=f"Using default value for '{var_name}'",
-                ))
-        else:
-            validations.append(VariableValidation(
-                name=var_name,
-                valid=True,
-            ))
+                )
+            )
 
     return validations
 

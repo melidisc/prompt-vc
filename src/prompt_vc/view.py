@@ -109,9 +109,7 @@ def load_prompt_and_meta(
     return meta_path, prompt_path, meta, issues
 
 
-def build_line_annotations(
-    meta: PromptMeta, num_lines: int
-) -> dict[int, list[Annotation]]:
+def build_line_annotations(meta: PromptMeta, num_lines: int) -> dict[int, list[Annotation]]:
     """Build a mapping of line numbers to annotations.
 
     Args:
@@ -243,9 +241,7 @@ def render_annotated_prompt(
     # Summary
     total_annotations = len(meta.annotations)
     if total_annotations > 0:
-        console.print(
-            f"\n[dim]{total_annotations} annotation(s) in this prompt[/dim]"
-        )
+        console.print(f"\n[dim]{total_annotations} annotation(s) in this prompt[/dim]")
 
 
 def render_meta_summary(meta: PromptMeta, console: Console) -> None:
@@ -340,11 +336,13 @@ def render_full_info(
     """
     # Header
     console.print()
-    console.print(Panel(
-        f"[bold]{meta.name or meta.id}[/bold]\n[dim]{meta.id}[/dim]",
-        title="Prompt Info",
-        border_style="blue"
-    ))
+    console.print(
+        Panel(
+            f"[bold]{meta.name or meta.id}[/bold]\n[dim]{meta.id}[/dim]",
+            title="Prompt Info",
+            border_style="blue",
+        )
+    )
 
     # Basic metadata
     console.print("\n[bold cyan]Metadata[/bold cyan]")
@@ -446,7 +444,7 @@ def render_full_info(
         console.print(f"\n[bold cyan]Annotations[/bold cyan] ({len(meta.annotations)})")
         for ann in meta.annotations:
             console.print(f"\n  [yellow][{escape(ann.id)}][/yellow]")
-            console.print(f"    Preview: \"{escape(ann.anchor.preview)}\"")
+            console.print(f'    Preview: "{escape(ann.anchor.preview)}"')
             if ann.anchor.line_hint:
                 console.print(f"    Line: {ann.anchor.line_hint}")
             if ann.rationale:

@@ -46,6 +46,7 @@ def show_hash_warnings(
             console.print(f"[green]✓[/green] Auto-updated line_hint for: {', '.join(updated)}")
             # Re-check for remaining warnings with fresh meta
             from .validation import parse_meta_file
+
             updated_meta, _ = parse_meta_file(meta_path)
             if updated_meta:
                 warnings = get_hash_warnings(updated_meta, prompt_path)
@@ -73,7 +74,7 @@ def init(with_manifest: bool) -> None:
     console.print("[green]✓[/green] Created prompts/ directory")
 
     if with_manifest:
-        manifest_content = '''schema_version: "1.0"
+        manifest_content = """schema_version: "1.0"
 organization: my-org
 repository: prompt-library
 
@@ -90,7 +91,7 @@ governance:
     must_have_evaluation: false
     min_annotations: 0
     required_tags: []
-'''
+"""
         with open("prompts/prompts.manifest.yaml", "w") as f:
             f.write(manifest_content)
         console.print("[green]✓[/green] Created prompts/prompts.manifest.yaml")
@@ -125,7 +126,7 @@ def new(prompt_id: str, domain: str | None, fmt: str) -> None:
 
 id: {prompt_id}
 name: {prompt_id.replace("-", " ").title()}
-created: "{__import__('datetime').date.today().isoformat()}"
+created: "{__import__("datetime").date.today().isoformat()}"
 authors: []
 
 intent: |
@@ -144,7 +145,7 @@ annotations: []
 
 changelog:
   - version: "1.0"
-    date: "{__import__('datetime').date.today().isoformat()}"
+    date: "{__import__("datetime").date.today().isoformat()}"
     author: ""
     summary: Initial version
     linked_annotations: []
@@ -630,7 +631,9 @@ def diff(prompt_id: str, old_ref: str, new_ref: str) -> None:
 @main.command()
 @click.argument("prompt_id")
 @click.option(
-    "--context", "-c", "context_path",
+    "--context",
+    "-c",
+    "context_path",
     type=click.Path(exists=True),
     help="Path to JSON/YAML context file",
 )
@@ -693,16 +696,16 @@ def render(
 @main.command()
 @click.option("--output", "-o", "output_path", type=click.Path(), help="Output file (DOT)")
 @click.option(
-    "--format", "-f", "output_format",
+    "--format",
+    "-f",
+    "output_format",
     type=click.Choice(["dot", "png", "svg", "pdf"]),
     default="dot",
     help="Output format",
 )
 @click.option("--no-domains", is_flag=True, help="Don't include domain groupings")
 @click.option("--title", "-t", default="Prompt Dependencies", help="Graph title")
-def graph(
-    output_path: str | None, output_format: str, no_domains: bool, title: str
-) -> None:
+def graph(output_path: str | None, output_format: str, no_domains: bool, title: str) -> None:
     """Generate a dependency graph of prompts."""
     from pathlib import Path
 

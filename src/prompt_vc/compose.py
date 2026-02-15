@@ -114,11 +114,13 @@ def _resolve_includes(
 
     for inc_id in includes:
         # Track dependency
-        all_dependencies.append(PromptDependency(
-            from_id=prompt_id,
-            to_id=inc_id,
-            include_type="include",
-        ))
+        all_dependencies.append(
+            PromptDependency(
+                from_id=prompt_id,
+                to_id=inc_id,
+                include_type="include",
+            )
+        )
 
         # Load included prompt
         inc_content, error = _load_prompt_content(inc_id, search_path)
@@ -224,10 +226,7 @@ def get_prompt_dependencies(
     if not recursive:
         # Just find direct includes
         includes = _find_includes(content)
-        return [
-            PromptDependency(from_id=prompt_id, to_id=inc_id)
-            for inc_id in includes
-        ], None
+        return [PromptDependency(from_id=prompt_id, to_id=inc_id) for inc_id in includes], None
 
     # Use compose to get all dependencies
     result = compose_prompt(prompt_id, search_path)

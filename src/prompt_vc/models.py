@@ -100,6 +100,7 @@ class PromptMeta(BaseModel):
 
 # Manifest models
 
+
 class PromptRef(BaseModel):
     """Reference to a prompt in the manifest."""
 

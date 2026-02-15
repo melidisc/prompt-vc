@@ -92,6 +92,7 @@ class TestBuildGraph:
         empty_dir.mkdir()
 
         import os
+
         original_cwd = os.getcwd()
         try:
             os.chdir(empty_dir)

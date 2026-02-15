@@ -113,9 +113,7 @@ def list_from_manifest(
 
         # Apply owner filter
         if owner_filter:
-            owner_match = any(
-                owner_filter.lower() in name.lower() for name in owner_names
-            )
+            owner_match = any(owner_filter.lower() in name.lower() for name in owner_names)
             if not owner_match:
                 continue
 
@@ -191,9 +189,7 @@ def list_from_directory(
 
         # Apply owner filter (check authors)
         if owner_filter:
-            owner_match = any(
-                owner_filter.lower() in author.lower() for author in meta.authors
-            )
+            owner_match = any(owner_filter.lower() in author.lower() for author in meta.authors)
             if not owner_match:
                 continue
 

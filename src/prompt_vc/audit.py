@@ -91,35 +91,43 @@ def check_production_requirements(
     # Check must_have_intent
     if requirements.must_have_intent:
         if not meta.intent or not meta.intent.strip():
-            issues.append(ComplianceIssue(
-                requirement="must_have_intent",
-                message="Prompt must have an intent field",
-            ))
+            issues.append(
+                ComplianceIssue(
+                    requirement="must_have_intent",
+                    message="Prompt must have an intent field",
+                )
+            )
 
     # Check must_have_evaluation
     if requirements.must_have_evaluation:
         if not meta.evaluation:
-            issues.append(ComplianceIssue(
-                requirement="must_have_evaluation",
-                message="Prompt must have an evaluation section",
-            ))
+            issues.append(
+                ComplianceIssue(
+                    requirement="must_have_evaluation",
+                    message="Prompt must have an evaluation section",
+                )
+            )
         elif not meta.evaluation.metrics:
-            issues.append(ComplianceIssue(
-                requirement="must_have_evaluation",
-                message="Prompt evaluation must define at least one metric",
-            ))
+            issues.append(
+                ComplianceIssue(
+                    requirement="must_have_evaluation",
+                    message="Prompt evaluation must define at least one metric",
+                )
+            )
 
     # Check min_annotations
     if requirements.min_annotations > 0:
         annotation_count = len(meta.annotations) if meta.annotations else 0
         if annotation_count < requirements.min_annotations:
-            issues.append(ComplianceIssue(
-                requirement="min_annotations",
-                message=(
-                    f"Prompt must have at least {requirements.min_annotations} "
-                    f"annotations (has {annotation_count})"
-                ),
-            ))
+            issues.append(
+                ComplianceIssue(
+                    requirement="min_annotations",
+                    message=(
+                        f"Prompt must have at least {requirements.min_annotations} "
+                        f"annotations (has {annotation_count})"
+                    ),
+                )
+            )
 
     # Check required_tags
     if requirements.required_tags:
@@ -130,10 +138,12 @@ def check_production_requirements(
 
         missing_tags = set(requirements.required_tags) - all_tags
         if missing_tags:
-            issues.append(ComplianceIssue(
-                requirement="required_tags",
-                message=f"Missing required tags: {', '.join(sorted(missing_tags))}",
-            ))
+            issues.append(
+                ComplianceIssue(
+                    requirement="required_tags",
+                    message=f"Missing required tags: {', '.join(sorted(missing_tags))}",
+                )
+            )
 
     return issues
 
@@ -243,15 +253,17 @@ def run_audit(
         meta_path = manifest_dir / _get_meta_path_from_prompt_path(prompt_info.path)
 
         if not meta_path.exists():
-            results.append(PromptAuditResult(
-                prompt_id=prompt_info.id,
-                domain=prompt_info.domain,
-                status=prompt_info.status,
-                path=prompt_info.path,
-                compliant=False,
-                skipped=True,
-                skip_reason="Meta file not found",
-            ))
+            results.append(
+                PromptAuditResult(
+                    prompt_id=prompt_info.id,
+                    domain=prompt_info.domain,
+                    status=prompt_info.status,
+                    path=prompt_info.path,
+                    compliant=False,
+                    skipped=True,
+                    skip_reason="Meta file not found",
+                )
+            )
             continue
 
         result = audit_prompt(

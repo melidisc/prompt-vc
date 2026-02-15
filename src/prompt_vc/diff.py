@@ -103,24 +103,28 @@ def _compute_annotation_changes(
         if ann_id not in new_annotations:
             preview = old_ann.anchor.preview
             preview_text = f"{preview[:50]}..." if len(preview) > 50 else preview
-            changes.append(AnnotationChange(
-                annotation_id=ann_id,
-                change_type="removed",
-                old_annotation=old_ann,
-                details=f"Removed annotation: {preview_text}",
-            ))
+            changes.append(
+                AnnotationChange(
+                    annotation_id=ann_id,
+                    change_type="removed",
+                    old_annotation=old_ann,
+                    details=f"Removed annotation: {preview_text}",
+                )
+            )
 
     # Find added annotations
     for ann_id, new_ann in new_annotations.items():
         if ann_id not in old_annotations:
             preview = new_ann.anchor.preview
             preview_text = f"{preview[:50]}..." if len(preview) > 50 else preview
-            changes.append(AnnotationChange(
-                annotation_id=ann_id,
-                change_type="added",
-                new_annotation=new_ann,
-                details=f"Added annotation: {preview_text}",
-            ))
+            changes.append(
+                AnnotationChange(
+                    annotation_id=ann_id,
+                    change_type="added",
+                    new_annotation=new_ann,
+                    details=f"Added annotation: {preview_text}",
+                )
+            )
 
     # Find modified annotations
     for ann_id in old_annotations.keys() & new_annotations.keys():
@@ -141,13 +145,15 @@ def _compute_annotation_changes(
             changes_found.append("tags changed")
 
         if changes_found:
-            changes.append(AnnotationChange(
-                annotation_id=ann_id,
-                change_type="modified",
-                old_annotation=old_ann,
-                new_annotation=new_ann,
-                details=", ".join(changes_found),
-            ))
+            changes.append(
+                AnnotationChange(
+                    annotation_id=ann_id,
+                    change_type="modified",
+                    old_annotation=old_ann,
+                    new_annotation=new_ann,
+                    details=", ".join(changes_found),
+                )
+            )
 
     return changes
 
@@ -187,27 +193,33 @@ def _parse_unified_diff(diff_output: str, new_annotations: list[Annotation]) -> 
 
         if line.startswith("+") and not line.startswith("+++"):
             new_line_num += 1
-            line_diffs.append(LineDiff(
-                line_number=new_line_num,
-                content=line[1:],  # Remove the + prefix
-                change_type="added",
-                annotations=annotations_by_line.get(new_line_num, []),
-            ))
+            line_diffs.append(
+                LineDiff(
+                    line_number=new_line_num,
+                    content=line[1:],  # Remove the + prefix
+                    change_type="added",
+                    annotations=annotations_by_line.get(new_line_num, []),
+                )
+            )
         elif line.startswith("-") and not line.startswith("---"):
-            line_diffs.append(LineDiff(
-                line_number=None,
-                content=line[1:],  # Remove the - prefix
-                change_type="removed",
-                annotations=[],
-            ))
+            line_diffs.append(
+                LineDiff(
+                    line_number=None,
+                    content=line[1:],  # Remove the - prefix
+                    change_type="removed",
+                    annotations=[],
+                )
+            )
         elif line.startswith(" "):
             new_line_num += 1
-            line_diffs.append(LineDiff(
-                line_number=new_line_num,
-                content=line[1:],  # Remove the space prefix
-                change_type="context",
-                annotations=annotations_by_line.get(new_line_num, []),
-            ))
+            line_diffs.append(
+                LineDiff(
+                    line_number=new_line_num,
+                    content=line[1:],  # Remove the space prefix
+                    change_type="context",
+                    annotations=annotations_by_line.get(new_line_num, []),
+                )
+            )
 
     return line_diffs
 

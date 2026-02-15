@@ -1,6 +1,5 @@
 """Tests for prompt-vc."""
 
-
 from prompt_vc.hashing import (
     extract_preview,
     hash_content,

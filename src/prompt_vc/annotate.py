@@ -132,8 +132,12 @@ def save_annotation_to_meta(
 
     with open(meta_path, "w", encoding="utf-8") as f:
         pyyaml.dump(
-            raw_data, f, Dumper=IndentDumper,
-            default_flow_style=False, sort_keys=False, allow_unicode=True
+            raw_data,
+            f,
+            Dumper=IndentDumper,
+            default_flow_style=False,
+            sort_keys=False,
+            allow_unicode=True,
         )
 
 
