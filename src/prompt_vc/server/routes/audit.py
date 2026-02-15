@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from ...audit import run_audit
 from ...models import ProductionRequirements
-from ..deps import WorkspaceSettings, get_settings
+from ..deps import get_workspace_root
 
 router = APIRouter(tags=["audit"])
 
@@ -41,13 +43,13 @@ class AuditReportResponse(BaseModel):
 
 
 @router.get("/audit", response_model=AuditReportResponse)
-async def audit_prompts(
+def audit_prompts(
     status: str = "production",
     all: bool = False,
-    settings: WorkspaceSettings = Depends(get_settings),
+    root: Path = Depends(get_workspace_root),
 ) -> AuditReportResponse:
     status_filter = None if all else status
-    report = run_audit(search_path=settings.root, status_filter=status_filter)
+    report = run_audit(search_path=root, status_filter=status_filter)
 
     if not report.manifest_path:
         raise HTTPException(status_code=404, detail="No manifest found")

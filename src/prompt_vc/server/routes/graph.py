@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 
 from ...graph import build_graph, generate_dot
-from ..deps import WorkspaceSettings, get_settings
+from ..deps import get_workspace_root
 
 router = APIRouter(tags=["graph"])
 
@@ -33,11 +35,11 @@ class GraphResponse(BaseModel):
 
 
 @router.get("/graph", response_model=GraphResponse)
-async def get_graph(
+def get_graph(
     no_domains: bool = False,
-    settings: WorkspaceSettings = Depends(get_settings),
+    root: Path = Depends(get_workspace_root),
 ) -> GraphResponse:
-    result = build_graph(search_path=settings.root, include_domains=not no_domains)
+    result = build_graph(search_path=root, include_domains=not no_domains)
 
     if result.error:
         raise HTTPException(status_code=400, detail=result.error)
@@ -66,12 +68,12 @@ async def get_graph(
 
 
 @router.get("/graph/dot", response_class=PlainTextResponse)
-async def get_graph_dot(
+def get_graph_dot(
     title: str = "Prompt Dependencies",
     no_domains: bool = False,
-    settings: WorkspaceSettings = Depends(get_settings),
+    root: Path = Depends(get_workspace_root),
 ) -> str:
-    result = build_graph(search_path=settings.root, include_domains=not no_domains)
+    result = build_graph(search_path=root, include_domains=not no_domains)
 
     if result.error:
         raise HTTPException(status_code=400, detail=result.error)

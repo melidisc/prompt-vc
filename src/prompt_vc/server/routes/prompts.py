@@ -3,20 +3,25 @@
 from __future__ import annotations
 
 import datetime
+from pathlib import Path
 from typing import Any
 
+import yaml
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ...annotate import create_annotation, get_existing_annotation_ids, save_annotation_to_meta
 from ...fix_annotations import detect_orphaned_annotations, remove_annotation_from_meta
+from ...listing import find_manifest, parse_manifest
 from ...listing import list_prompts as do_list_prompts
 from ...models import PromptMeta
 from ...validation import get_hash_warnings
 from ...view import load_prompt_and_meta
-from ..deps import WorkspaceSettings, get_settings
+from ..deps import get_workspace_root
 
 router = APIRouter(tags=["prompts"])
+
+MAX_CONTENT_LENGTH = 1_000_000  # 1 MB
 
 
 # -- Response schemas --
@@ -51,7 +56,7 @@ class CreatePromptRequest(BaseModel):
 
 
 class UpdateContentRequest(BaseModel):
-    content: str
+    content: str = Field(max_length=MAX_CONTENT_LENGTH)
 
 
 class AddAnnotationRequest(BaseModel):
@@ -81,14 +86,14 @@ class FixAnnotationsResponse(BaseModel):
 
 
 @router.get("/prompts", response_model=PromptListResponse)
-async def list_prompts(
+def list_prompts(
     domain: str | None = None,
     status: str | None = None,
     owner: str | None = None,
-    settings: WorkspaceSettings = Depends(get_settings),
+    root: Path = Depends(get_workspace_root),
 ) -> PromptListResponse:
     prompts, used_manifest = do_list_prompts(
-        settings.root,
+        root,
         domain_filter=domain,
         status_filter=status,
         owner_filter=owner,
@@ -110,8 +115,13 @@ async def list_prompts(
 
 
 @router.get("/prompts/{prompt_id}", response_model=PromptDetailResponse)
-async def get_prompt(prompt_id: str) -> PromptDetailResponse:
-    meta_path, prompt_path, meta, issues = load_prompt_and_meta(prompt_id)
+def get_prompt(
+    prompt_id: str,
+    root: Path = Depends(get_workspace_root),
+) -> PromptDetailResponse:
+    meta_path, prompt_path, meta, issues = load_prompt_and_meta(
+        prompt_id, search_path=root,
+    )
 
     if meta is None:
         detail = "; ".join(issues) if issues else "Prompt not found"
@@ -135,8 +145,13 @@ async def get_prompt(prompt_id: str) -> PromptDetailResponse:
 
 
 @router.get("/prompts/{prompt_id}/content")
-async def get_prompt_content(prompt_id: str) -> dict[str, str]:
-    meta_path, prompt_path, meta, issues = load_prompt_and_meta(prompt_id)
+def get_prompt_content(
+    prompt_id: str,
+    root: Path = Depends(get_workspace_root),
+) -> dict[str, str]:
+    meta_path, prompt_path, meta, issues = load_prompt_and_meta(
+        prompt_id, search_path=root,
+    )
     if meta is None or prompt_path is None:
         raise HTTPException(status_code=404, detail="Prompt not found")
 
@@ -145,11 +160,11 @@ async def get_prompt_content(prompt_id: str) -> dict[str, str]:
 
 
 @router.post("/prompts", status_code=201)
-async def create_prompt(
+def create_prompt(
     body: CreatePromptRequest,
-    settings: WorkspaceSettings = Depends(get_settings),
+    root: Path = Depends(get_workspace_root),
 ) -> dict[str, str]:
-    base_dir = settings.root / "prompts"
+    base_dir = root / "prompts"
     if body.domain:
         base_dir = base_dir / body.domain
     base_dir.mkdir(parents=True, exist_ok=True)
@@ -161,7 +176,9 @@ async def create_prompt(
         raise HTTPException(status_code=409, detail="Prompt already exists")
 
     today = datetime.date.today().isoformat()
-    prompt_file.write_text(f"# {body.prompt_id}\n\nYour prompt content here.\n", encoding="utf-8")
+    prompt_file.write_text(
+        f"# {body.prompt_id}\n\nYour prompt content here.\n", encoding="utf-8",
+    )
     meta_file.write_text(
         f'schema_version: "1.0"\n\n'
         f"id: {body.prompt_id}\n"
@@ -173,12 +190,58 @@ async def create_prompt(
         encoding="utf-8",
     )
 
+    # Update manifest if one exists
+    _add_prompt_to_manifest(root, body.prompt_id, body.domain, body.fmt)
+
     return {"prompt_id": body.prompt_id, "path": str(prompt_file)}
 
 
+def _add_prompt_to_manifest(
+    root: Path, prompt_id: str, domain: str | None, fmt: str,
+) -> None:
+    """Best-effort: append new prompt to manifest if one exists."""
+    manifest_path = find_manifest(root)
+    if manifest_path is None:
+        return
+
+    manifest, err = parse_manifest(manifest_path)
+    if manifest is None:
+        return
+
+    rel_path = f"{domain}/{prompt_id}.prompt.{fmt}" if domain else f"{prompt_id}.prompt.{fmt}"
+    target_domain = domain or "default"
+
+    # Avoid duplicate
+    if target_domain in manifest.domains:
+        for ref in manifest.domains[target_domain].prompts:
+            if ref.id == prompt_id:
+                return
+
+    # Load raw YAML to preserve formatting
+    with open(manifest_path, encoding="utf-8") as f:
+        raw = yaml.safe_load(f)
+
+    if raw is None:
+        return
+
+    domains = raw.setdefault("domains", {})
+    dom_data = domains.setdefault(target_domain, {"prompts": []})
+    prompts_list = dom_data.setdefault("prompts", [])
+    prompts_list.append({"id": prompt_id, "path": rel_path, "status": "experimental"})
+
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        yaml.dump(raw, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+
+
 @router.put("/prompts/{prompt_id}/content")
-async def update_content(prompt_id: str, body: UpdateContentRequest) -> dict[str, str]:
-    meta_path, prompt_path, meta, issues = load_prompt_and_meta(prompt_id)
+def update_content(
+    prompt_id: str,
+    body: UpdateContentRequest,
+    root: Path = Depends(get_workspace_root),
+) -> dict[str, str]:
+    meta_path, prompt_path, meta, issues = load_prompt_and_meta(
+        prompt_id, search_path=root,
+    )
     if meta is None or prompt_path is None:
         raise HTTPException(status_code=404, detail="Prompt not found")
 
@@ -191,8 +254,14 @@ async def update_content(prompt_id: str, body: UpdateContentRequest) -> dict[str
     response_model=AnnotationResponse,
     status_code=201,
 )
-async def add_annotation(prompt_id: str, body: AddAnnotationRequest) -> AnnotationResponse:
-    meta_path, prompt_path, meta, issues = load_prompt_and_meta(prompt_id)
+def add_annotation(
+    prompt_id: str,
+    body: AddAnnotationRequest,
+    root: Path = Depends(get_workspace_root),
+) -> AnnotationResponse:
+    meta_path, prompt_path, meta, issues = load_prompt_and_meta(
+        prompt_id, search_path=root,
+    )
     if meta is None or prompt_path is None or meta_path is None:
         raise HTTPException(status_code=404, detail="Prompt not found")
 
@@ -224,8 +293,14 @@ async def add_annotation(prompt_id: str, body: AddAnnotationRequest) -> Annotati
 
 
 @router.delete("/prompts/{prompt_id}/annotations/{annotation_id}")
-async def delete_annotation(prompt_id: str, annotation_id: str) -> dict[str, str]:
-    meta_path, prompt_path, meta, issues = load_prompt_and_meta(prompt_id)
+def delete_annotation(
+    prompt_id: str,
+    annotation_id: str,
+    root: Path = Depends(get_workspace_root),
+) -> dict[str, str]:
+    meta_path, prompt_path, meta, issues = load_prompt_and_meta(
+        prompt_id, search_path=root,
+    )
     if meta is None or meta_path is None:
         raise HTTPException(status_code=404, detail="Prompt not found")
 
@@ -236,12 +311,17 @@ async def delete_annotation(prompt_id: str, annotation_id: str) -> dict[str, str
     return {"status": "deleted"}
 
 
-@router.post(
-    "/prompts/{prompt_id}/fix-annotations",
+@router.get(
+    "/prompts/{prompt_id}/orphaned-annotations",
     response_model=FixAnnotationsResponse,
 )
-async def fix_annotations(prompt_id: str) -> FixAnnotationsResponse:
-    meta_path, prompt_path, meta, issues = load_prompt_and_meta(prompt_id)
+def get_orphaned_annotations(
+    prompt_id: str,
+    root: Path = Depends(get_workspace_root),
+) -> FixAnnotationsResponse:
+    meta_path, prompt_path, meta, issues = load_prompt_and_meta(
+        prompt_id, search_path=root,
+    )
     if meta is None or prompt_path is None:
         raise HTTPException(status_code=404, detail="Prompt not found")
 

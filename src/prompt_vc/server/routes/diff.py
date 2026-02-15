@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from ...diff import diff_prompt
+from ..deps import get_workspace_root
 
 router = APIRouter(tags=["diff"])
 
@@ -33,15 +36,17 @@ class DiffResponse(BaseModel):
 
 
 @router.get("/prompts/{prompt_id}/diff", response_model=DiffResponse)
-async def get_diff(
+def get_diff(
     prompt_id: str,
     old: str = "HEAD~1",
     new: str = "HEAD",
+    root: Path = Depends(get_workspace_root),
 ) -> DiffResponse:
-    result = diff_prompt(prompt_id, old_ref=old, new_ref=new)
+    result = diff_prompt(prompt_id, old_ref=old, new_ref=new, search_path=root)
 
     if result.error:
-        raise HTTPException(status_code=400, detail=result.error)
+        status = 404 if "not found" in result.error.lower() else 400
+        raise HTTPException(status_code=status, detail=result.error)
 
     return DiffResponse(
         prompt_id=result.prompt_id,

@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from ...compose import compose_prompt
+from ..deps import get_workspace_root
 
 router = APIRouter(tags=["compose"])
 
@@ -24,11 +27,15 @@ class ComposeResponse(BaseModel):
 
 
 @router.get("/prompts/{prompt_id}/compose", response_model=ComposeResponse)
-async def compose(prompt_id: str) -> ComposeResponse:
-    result = compose_prompt(prompt_id)
+def compose(
+    prompt_id: str,
+    root: Path = Depends(get_workspace_root),
+) -> ComposeResponse:
+    result = compose_prompt(prompt_id, search_path=root)
 
     if result.error:
-        raise HTTPException(status_code=400, detail=result.error)
+        status = 404 if "not found" in result.error.lower() else 400
+        raise HTTPException(status_code=status, detail=result.error)
 
     return ComposeResponse(
         prompt_id=result.prompt_id,

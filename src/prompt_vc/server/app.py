@@ -1,11 +1,11 @@
 """FastAPI application factory."""
 
+import os
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .deps import set_workspace_root
 from .routes import audit, compose, diff, graph, prompts, render, validate
 
 
@@ -16,14 +16,13 @@ def create_app(workspace_root: Path | None = None, dev: bool = False) -> FastAPI
         workspace_root: Root directory for prompt-vc workspace.
         dev: Enable dev mode (CORS for all origins).
     """
-    if workspace_root:
-        set_workspace_root(workspace_root)
-
     app = FastAPI(
         title="prompt-vc",
         description="Web UI API for prompt version control",
         version="0.1.0",
     )
+
+    app.state.workspace_root = (workspace_root or Path.cwd()).resolve()
 
     if dev:
         app.add_middleware(
@@ -42,7 +41,15 @@ def create_app(workspace_root: Path | None = None, dev: bool = False) -> FastAPI
     app.include_router(graph.router, prefix="/api")
 
     @app.get("/api/health")
-    async def health() -> dict[str, str]:
+    def health() -> dict[str, str]:
         return {"status": "ok"}
 
     return app
+
+
+def _app_from_env() -> FastAPI:
+    """Create app from environment variables (used by uvicorn import string)."""
+    workspace = os.environ.get("PROMPT_VC_WORKSPACE")
+    root = Path(workspace) if workspace else None
+    dev = bool(os.environ.get("PROMPT_VC_DEV"))
+    return create_app(workspace_root=root, dev=dev)

@@ -2,25 +2,13 @@
 
 from pathlib import Path
 
-from pydantic import BaseModel
+from fastapi import Request
 
 
-class WorkspaceSettings(BaseModel):
-    """Resolved workspace root for all file operations."""
+def get_workspace_root(request: Request) -> Path:
+    """Return the workspace root stored on app.state.
 
-    root: Path = Path.cwd()
-
-
-_settings: WorkspaceSettings | None = None
-
-
-def get_settings() -> WorkspaceSettings:
-    global _settings
-    if _settings is None:
-        _settings = WorkspaceSettings()
-    return _settings
-
-
-def set_workspace_root(path: Path) -> None:
-    global _settings
-    _settings = WorkspaceSettings(root=path.resolve())
+    This is the single source of truth for the workspace directory.
+    Set by create_app() during startup.
+    """
+    return request.app.state.workspace_root

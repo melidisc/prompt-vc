@@ -808,9 +808,12 @@ def serve(port: int, host: str, dev: bool, open_browser: bool) -> None:
         )
         raise SystemExit(1)
 
-    from .server.app import create_app
+    import os
 
-    app = create_app(workspace_root=Path.cwd(), dev=dev)
+    # Set workspace root via env var so the app factory can pick it up
+    # (needed for both reload mode and normal mode)
+    os.environ["PROMPT_VC_WORKSPACE"] = str(Path.cwd().resolve())
+    os.environ["PROMPT_VC_DEV"] = "1" if dev else ""
 
     if open_browser:
         import threading
@@ -828,7 +831,13 @@ def serve(port: int, host: str, dev: bool, open_browser: bool) -> None:
     if dev:
         console.print("[dim]Dev mode: CORS enabled, auto-reload active[/dim]")
 
-    uvicorn.run(app, host=host, port=port, reload=dev)
+    # reload requires an import string, not an app object
+    uvicorn.run(
+        "prompt_vc.server.app:_app_from_env",
+        host=host,
+        port=port,
+        reload=dev,
+    )
 
 
 if __name__ == "__main__":

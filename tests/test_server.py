@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-import os
 import textwrap
+from collections.abc import Generator
 from pathlib import Path
 
 import pytest
+import yaml
 from fastapi.testclient import TestClient
 
 from prompt_vc.server.app import create_app
-from prompt_vc.server.deps import set_workspace_root
 
 
 @pytest.fixture()
@@ -104,15 +104,13 @@ def workspace(tmp_path: Path) -> Path:
 
 
 @pytest.fixture()
-def client(workspace: Path) -> TestClient:
-    """Create a test client pointing at the workspace."""
-    # Change to workspace so file-discovery works
-    original_dir = os.getcwd()
-    os.chdir(workspace)
-    set_workspace_root(workspace)
+def client(workspace: Path) -> Generator[TestClient, None, None]:
+    """Create a test client pointing at the workspace.
+
+    Uses create_app(workspace_root=...) — no os.chdir required.
+    """
     app = create_app(workspace_root=workspace, dev=False)
     yield TestClient(app)
-    os.chdir(original_dir)
 
 
 # -- Health --
@@ -192,6 +190,20 @@ class TestCreatePrompt:
         resp = client.post("/api/prompts", json={"prompt_id": "dup-test"})
         assert resp.status_code == 409
 
+    def test_create_updates_manifest(self, client: TestClient, workspace: Path) -> None:
+        """Creating a prompt should add it to the manifest."""
+        client.post(
+            "/api/prompts",
+            json={"prompt_id": "manifest-test", "domain": "support", "fmt": "md"},
+        )
+        manifest_path = workspace / "prompts" / "prompts.manifest.yaml"
+        with open(manifest_path) as f:
+            manifest = yaml.safe_load(f)
+        prompt_ids = [
+            p["id"] for p in manifest["domains"]["support"]["prompts"]
+        ]
+        assert "manifest-test" in prompt_ids
+
 
 class TestUpdateContent:
     def test_update(self, client: TestClient) -> None:
@@ -203,6 +215,20 @@ class TestUpdateContent:
         # Verify
         resp2 = client.get("/api/prompts/greeting/content")
         assert resp2.json()["content"] == "Updated content."
+
+    def test_update_empty(self, client: TestClient) -> None:
+        resp = client.put(
+            "/api/prompts/greeting/content",
+            json={"content": ""},
+        )
+        assert resp.status_code == 200
+
+    def test_update_too_large(self, client: TestClient) -> None:
+        resp = client.put(
+            "/api/prompts/greeting/content",
+            json={"content": "x" * 1_100_000},
+        )
+        assert resp.status_code == 422  # Pydantic validation error
 
 
 # -- Annotations --
@@ -238,9 +264,9 @@ class TestAnnotations:
         assert resp.status_code == 404
 
 
-class TestFixAnnotations:
+class TestOrphanedAnnotations:
     def test_detect_orphaned(self, client: TestClient) -> None:
-        resp = client.post("/api/prompts/greeting/fix-annotations")
+        resp = client.get("/api/prompts/greeting/orphaned-annotations")
         assert resp.status_code == 200
         # The placeholder hash won't match, so it should be orphaned
         data = resp.json()
@@ -303,6 +329,10 @@ class TestRender:
         resp = client.post("/api/prompts/greeting/render", json={"context": {}})
         assert resp.status_code == 400
 
+    def test_render_not_found(self, client: TestClient) -> None:
+        resp = client.post("/api/prompts/nonexistent/render", json={"context": {}})
+        assert resp.status_code == 404
+
 
 # -- Compose --
 
@@ -316,7 +346,7 @@ class TestCompose:
 
     def test_compose_not_found(self, client: TestClient) -> None:
         resp = client.get("/api/prompts/nonexistent/compose")
-        assert resp.status_code == 400
+        assert resp.status_code == 404
 
 
 # -- Diff --
@@ -325,7 +355,7 @@ class TestCompose:
 class TestDiff:
     def test_diff_not_found(self, client: TestClient) -> None:
         resp = client.get("/api/prompts/nonexistent/diff")
-        assert resp.status_code == 400
+        assert resp.status_code == 404
 
 
 # -- Graph --
