@@ -178,6 +178,9 @@ def interactive_fix_annotations(
     if prompt_path is None:
         return False, "No prompt file found"
 
+    if meta_path is None:
+        return False, "No meta file found"
+
     if not parsed_meta.annotations:
         return True, "No annotations to check"
 

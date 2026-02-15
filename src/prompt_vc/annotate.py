@@ -216,6 +216,9 @@ def interactive_annotate(
     if prompt_path is None:
         return False, "No prompt file found"
 
+    if meta_path is None:
+        return False, "No meta file found"
+
     # Read prompt content
     try:
         with open(prompt_path, encoding="utf-8") as f:

@@ -3,6 +3,7 @@
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -32,7 +33,7 @@ class VariableValidation:
     message: str = ""
 
 
-def load_context(context_path: Path) -> tuple[dict, str | None]:
+def load_context(context_path: Path) -> tuple[dict[str, Any], str | None]:
     """Load context variables from a JSON or YAML file.
 
     Args:
@@ -67,7 +68,7 @@ def load_context(context_path: Path) -> tuple[dict, str | None]:
 
 def validate_variables(
     meta: PromptMeta,
-    context: dict,
+    context: dict[str, Any],
 ) -> list[VariableValidation]:
     """Validate that required variables are provided.
 
@@ -122,7 +123,7 @@ def _get_defaults(meta: PromptMeta) -> dict[str, str | int | float | bool | None
     return defaults
 
 
-def _render_jinja2(content: str, context: dict) -> tuple[str, str | None]:
+def _render_jinja2(content: str, context: dict[str, Any]) -> tuple[str, str | None]:
     """Render content using Jinja2.
 
     Returns:
@@ -146,14 +147,14 @@ def _render_jinja2(content: str, context: dict) -> tuple[str, str | None]:
         return "", f"Render error: {e}"
 
 
-def _render_none(content: str, context: dict) -> tuple[str, str | None]:
+def _render_none(content: str, context: dict[str, Any]) -> tuple[str, str | None]:
     """Return content as-is (no templating)."""
     return content, None
 
 
 def render_prompt(
     prompt_id: str,
-    context: dict | None = None,
+    context: dict[str, Any] | None = None,
     context_path: Path | None = None,
     search_path: Path | None = None,
 ) -> RenderResult:

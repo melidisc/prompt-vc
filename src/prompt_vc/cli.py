@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import click
 from rich.console import Console
@@ -652,7 +652,7 @@ def render(
     from .render import render_prompt
 
     # Parse inline variables
-    inline_context: dict = {}
+    inline_context: dict[str, Any] = {}
     for var in variables:
         if "=" in var:
             key, value = var.split("=", 1)
