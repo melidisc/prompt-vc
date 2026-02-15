@@ -18,7 +18,8 @@ src/prompt_vc/
 ├── listing.py         # Prompt listing from manifest or directory
 ├── annotate.py        # Annotation creation and management
 ├── fix_annotations.py # Fix orphaned annotations
-└── audit.py           # Governance compliance auditing
+├── audit.py           # Governance compliance auditing
+└── diff.py            # Git-based version comparison
 ```
 
 ## Key Concepts
@@ -40,11 +41,9 @@ Implemented:
 - `prompt-vc annotate <id> [--line] [--rationale] [--source] [--tags] [--author]` - Add annotations
 - `prompt-vc fix-annotations <id> [--auto-remove] [--dry-run]` - Fix orphaned annotations
 - `prompt-vc audit [--status] [--all]` - Check governance compliance against production_requirements
+- `prompt-vc diff <id> [--old] [--new]` - Compare prompt versions between git refs
 
 Note: Commands with `--auto-fix` will automatically update stale `line_hint` values when content has moved.
-
-Stubbed (TODO):
-- `prompt-vc diff` - Compare prompt versions
 
 ## Development
 

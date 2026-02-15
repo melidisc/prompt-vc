@@ -47,7 +47,7 @@
   - Check each prompt against `production_requirements`
   - Report compliance status per prompt
 
-- [ ] **Implement `diff` command**
+- [x] **Implement `diff` command**
   - Compare two git refs for a prompt
   - Show annotation context alongside text changes
   - Highlight new/removed/modified annotations
