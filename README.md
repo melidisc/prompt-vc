@@ -65,6 +65,9 @@ prompt-vc graph
 
 # Compose prompt with resolved includes
 prompt-vc compose customer-support
+
+# Fix stale annotations
+prompt-vc fix-annotations customer-support --dry-run
 ```
 
 ## File Formats
