@@ -1,0 +1,54 @@
+schema_version: "1.0"
+id: common-guidelines
+name: Common Customer Support Guidelines
+created: "2024-01-15"
+authors:
+  - name: Support Team
+    email: support-eng@acme-corp.com
+
+intent: |
+  Provide consistent guidelines for all customer support interactions,
+  ensuring compliance with company policies and maintaining a professional tone.
+
+assumptions:
+  model: claude-sonnet-4-20250514
+  max_tokens: 500
+  temperature: 0.3
+
+annotations:
+  - id: ann_privacy_01
+    anchor:
+      hash: "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      preview: "Share customer personal data with third parties"
+      line_hint: 11
+    rationale: "GDPR and privacy law compliance - critical for EU customers"
+    tags:
+      - legal
+      - privacy
+      - gdpr
+      - reviewed
+    source: "https://legal.acme-corp.com/privacy-policy"
+    author: legal@acme-corp.com
+    date: "2024-01-15"
+
+  - id: ann_legal_01
+    anchor:
+      hash: "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+      preview: "Provide legal or financial advice"
+      line_hint: 13
+    rationale: "Liability protection - agents are not licensed advisors"
+    tags:
+      - legal
+      - compliance
+      - reviewed
+    source: "https://legal.acme-corp.com/agent-guidelines"
+
+evaluation:
+  metrics:
+    - name: compliance_rate
+      target: ">= 99%"
+      measured_by: "evals/compliance_checker.py"
+    - name: tone_score
+      target: ">= 4.5"
+      measured_by: "evals/tone_analyzer.py"
+  test_cases_ref: "evals/test_cases/guidelines.yaml"

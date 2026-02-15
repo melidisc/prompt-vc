@@ -14,6 +14,10 @@ domains:
       - team: support-engineering
         slack: "#support-eng"
     prompts:
+      - id: common-guidelines
+        path: customer-support/common-guidelines.prompt.md
+        status: production
+        deployed_to: [support-api, chat-widget, email-bot]
       - id: refund-handler
         path: customer-support/refund-handler.prompt.md
         status: production
@@ -43,3 +47,9 @@ governance:
     auto_reviewers:
       customer-support: ["@support-eng-leads"]
       product: ["@catalog-team"]
+
+relationships:
+  - type: depends_on
+    from: refund-handler
+    to: common-guidelines
+    note: "Includes shared customer support guidelines"

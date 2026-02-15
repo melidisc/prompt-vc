@@ -60,9 +60,32 @@ pip install -e ".[dev]"
 # Run tests
 pytest tests/ -v
 
+# Run linting
+ruff check src/ tests/
+
+# Run type checking
+mypy src/prompt_vc/ --ignore-missing-imports
+
 # Run CLI
 prompt-vc --help
 ```
+
+## Testing
+
+Tests are in the `tests/` directory and use pytest:
+
+- `test_models.py` - Pydantic model tests (30 tests)
+- `test_validation.py` - Meta parsing and hash checking (15 tests)
+- `test_audit.py` - Governance compliance (14 tests)
+- `test_render.py` - Template rendering (21 tests)
+- `test_graph.py` - DOT generation (17 tests)
+- `test_compose.py` - Include resolution (15 tests)
+- `test_cli.py` - CLI integration tests (16 tests)
+- `test_core.py` - Core hashing functionality (12 tests)
+
+Total: 140 tests
+
+CI runs on GitHub Actions for Python 3.9, 3.10, 3.11, 3.12.
 
 ## File Patterns
 
@@ -132,6 +155,14 @@ prompt-vc --help
                                                         │ • get_deps      │
                                                         │ • resolve_incl  │
                                                         └─────────────────┘
+
+┌─────────────────┐          ┌─────────────────┐
+│   render.py     │          │    diff.py      │
+│                 │          │                 │
+│ • render_prompt │          │ • git_diff      │
+│ • load_context  │          │ • compare_vers  │
+│ • validate_vars │          │ • show_changes  │
+└─────────────────┘          └─────────────────┘
 ```
 
 ## Data Models

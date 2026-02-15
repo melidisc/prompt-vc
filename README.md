@@ -50,6 +50,24 @@ prompt-vc view customer-support --annotated
 
 # Add an annotation to a prompt
 prompt-vc annotate customer-support --line 12
+
+# Check governance compliance
+prompt-vc audit
+
+# Compare versions between git refs
+prompt-vc diff customer-support --old HEAD~1
+
+# Render a Jinja template with variables
+prompt-vc render customer-support -v customer_name=John
+
+# Generate dependency graph (DOT format)
+prompt-vc graph
+
+# Compose prompt with resolved includes
+prompt-vc compose customer-support
+
+# Fix stale annotations
+prompt-vc fix-annotations customer-support --dry-run
 ```
 
 ## File Formats
@@ -109,6 +127,7 @@ For repositories with multiple prompts. See [docs/manifest-schema.md](docs/manif
 
 ## Documentation
 
+- [End-to-End Example](docs/end-to-end-example.md) - Complete walkthrough
 - [Meta File Schema](docs/meta-schema.md)
 - [Manifest Schema](docs/manifest-schema.md)
 - [CLI Reference](docs/cli.md)

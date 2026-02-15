@@ -109,8 +109,8 @@
 
 ## Tech Debt
 
-- [ ] Add more comprehensive tests for models
-- [ ] Add CLI integration tests (click.testing.CliRunner)
+- [x] Add more comprehensive tests for models
+- [x] Add CLI integration tests (click.testing.CliRunner)
 - [ ] Set up GitHub Actions for CI
 - [ ] Add type stubs for better IDE support
 - [ ] Documentation site (mkdocs or similar)
