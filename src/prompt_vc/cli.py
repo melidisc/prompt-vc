@@ -709,5 +709,44 @@ def graph(output_path: str | None, output_format: str, no_domains: bool, title: 
             raise SystemExit(1)
 
 
+@main.command()
+@click.argument("prompt_id")
+@click.option("--output", "-o", "output_path", type=click.Path(), help="Output file path (default: stdout)")
+@click.option("--show-deps", is_flag=True, help="Show dependency information")
+def compose(prompt_id: str, output_path: str | None, show_deps: bool) -> None:
+    """Compose a prompt by resolving all includes."""
+    from pathlib import Path
+
+    from .compose import compose_prompt
+
+    result = compose_prompt(prompt_id)
+
+    if result.error:
+        console.print(f"[red]✗[/red] {result.error}")
+        raise SystemExit(1)
+
+    if show_deps:
+        console.print(f"\n[bold]Composition: {result.prompt_id}[/bold]")
+        if result.dependencies:
+            console.print("\n[bold]Dependencies:[/bold]")
+            for dep in result.dependencies:
+                console.print(f"  {dep.from_id} → {dep.to_id} ({dep.include_type})")
+        if result.resolved_prompts:
+            console.print(f"\n[dim]Resolution order: {' → '.join(result.resolved_prompts)}[/dim]")
+        console.print()
+
+    if output_path:
+        try:
+            Path(output_path).write_text(result.composed_content, encoding="utf-8")
+            console.print(f"[green]✓[/green] Composed prompt written to {output_path}")
+            if result.dependencies:
+                console.print(f"[dim]Resolved {len(result.dependencies)} include(s)[/dim]")
+        except OSError as e:
+            console.print(f"[red]✗[/red] Cannot write output file: {e}")
+            raise SystemExit(1)
+    else:
+        console.print(result.composed_content)
+
+
 if __name__ == "__main__":
     main()

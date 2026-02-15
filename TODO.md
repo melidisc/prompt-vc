@@ -87,7 +87,7 @@
   - Generate dependency graph (DOT, PNG, SVG)
   - Show cross-prompt dependencies
 
-- [ ] **Prompt composition**
+- [x] **Prompt composition**
   - Support `{% include 'other-prompt.md' %}` or similar
   - Track dependencies in manifest automatically
 
