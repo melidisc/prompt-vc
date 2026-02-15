@@ -179,7 +179,7 @@ def generate_dot(graph: DependencyGraph, title: str = "Prompt Dependencies") -> 
             escaped_domain = _escape_dot_string(domain)
             lines.append(f"    subgraph cluster_{_sanitize_id(domain)} {{")
             lines.append(f'        label="{escaped_domain}";')
-            lines.append('        style=filled;')
+            lines.append("        style=filled;")
             lines.append('        fillcolor="#f5f5f5";')
             lines.append("")
 
@@ -227,7 +227,7 @@ def _get_node_style(node: GraphNode) -> str:
     parts = [f'label="{escaped_label}"']
 
     if node.node_type == "domain":
-        parts.append('shape=folder')
+        parts.append("shape=folder")
         parts.append('fillcolor="#d4edda"')
     elif node.status == "production":
         parts.append('fillcolor="#c3e6cb"')  # Green for production
@@ -258,7 +258,7 @@ def _get_edge_style(edge: GraphEdge) -> str:
 
     if edge.note:
         # Append note to label
-        existing_label = next((p for p in parts if p.startswith('label=')), None)
+        existing_label = next((p for p in parts if p.startswith("label=")), None)
         if existing_label:
             parts.remove(existing_label)
             label_value = existing_label.split("=")[1].strip('"')

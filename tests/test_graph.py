@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from prompt_vc.graph import (
     DependencyGraph,
     GraphEdge,
@@ -94,6 +92,7 @@ class TestBuildGraph:
         empty_dir.mkdir()
 
         import os
+
         original_cwd = os.getcwd()
         try:
             os.chdir(empty_dir)

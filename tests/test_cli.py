@@ -1,6 +1,5 @@
 """CLI integration tests for prompt-vc."""
 
-import os
 from pathlib import Path
 
 import pytest

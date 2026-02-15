@@ -2,8 +2,7 @@
 
 from pathlib import Path
 
-import pytest
-
+from prompt_vc.models import PromptMeta, Variable
 from prompt_vc.render import (
     RenderResult,
     VariableValidation,
@@ -11,7 +10,6 @@ from prompt_vc.render import (
     render_prompt,
     validate_variables,
 )
-from prompt_vc.models import PromptMeta, Variable
 
 
 class TestLoadContext:

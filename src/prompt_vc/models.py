@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 class Anchor(BaseModel):
     """Content anchor for annotations."""
-    
+
     hash: str = Field(description="SHA-256 hash of the annotated text")
     preview: str = Field(description="First ~50 chars of the text for readability")
     line_hint: int | None = Field(default=None, description="Best-effort line number")
@@ -17,7 +17,7 @@ class Anchor(BaseModel):
 
 class Annotation(BaseModel):
     """Line-level annotation with provenance."""
-    
+
     id: str = Field(description="Unique annotation ID")
     anchor: Anchor
     author: str | None = Field(default=None, description="Author email")
@@ -29,7 +29,7 @@ class Annotation(BaseModel):
 
 class Variable(BaseModel):
     """Variable definition."""
-    
+
     type: str = Field(description="Type: string, integer, boolean, object, array")
     description: str | None = None
     required: bool = True
@@ -39,7 +39,7 @@ class Variable(BaseModel):
 
 class Metric(BaseModel):
     """Evaluation metric."""
-    
+
     name: str
     target: str = Field(description="Target value, e.g., '>= 4.0', '100%'")
     measured_by: str = Field(description="Path to evaluator or description")
@@ -47,14 +47,14 @@ class Metric(BaseModel):
 
 class Evaluation(BaseModel):
     """Evaluation criteria."""
-    
+
     metrics: list[Metric] = Field(default_factory=list)
     test_cases_ref: str | None = None
 
 
 class Dependency(BaseModel):
     """Upstream or downstream dependency."""
-    
+
     service: str
     provides: list[str] | None = None
     expects: str | None = None
@@ -62,7 +62,7 @@ class Dependency(BaseModel):
 
 class Assumptions(BaseModel):
     """Runtime assumptions."""
-    
+
     model: str | None = None
     min_context_window: int | None = None
     max_tokens: int | None = None
@@ -84,7 +84,7 @@ class ChangelogEntry(BaseModel):
 
 class PromptMeta(BaseModel):
     """Complete prompt metadata schema."""
-    
+
     schema_version: str = "1.0"
     id: str
     name: str | None = None
@@ -100,9 +100,10 @@ class PromptMeta(BaseModel):
 
 # Manifest models
 
+
 class PromptRef(BaseModel):
     """Reference to a prompt in the manifest."""
-    
+
     id: str
     path: str
     status: str = "experimental"
@@ -111,7 +112,7 @@ class PromptRef(BaseModel):
 
 class Owner(BaseModel):
     """Domain owner."""
-    
+
     team: str | None = None
     user: str | None = None
     slack: str | None = None
@@ -119,7 +120,7 @@ class Owner(BaseModel):
 
 class Domain(BaseModel):
     """Domain grouping."""
-    
+
     description: str | None = None
     owners: list[Owner] = Field(default_factory=list)
     prompts: list[PromptRef] = Field(default_factory=list)
@@ -127,7 +128,7 @@ class Domain(BaseModel):
 
 class Relationship(BaseModel):
     """Cross-prompt relationship."""
-    
+
     type: str = Field(description="replaces, depends_on, variant_of, derived_from")
     from_: str = Field(alias="from")
     to: str
@@ -136,7 +137,7 @@ class Relationship(BaseModel):
 
 class ProductionRequirements(BaseModel):
     """Governance requirements for production prompts."""
-    
+
     must_have_intent: bool = True
     must_have_evaluation: bool = False
     min_annotations: int = 0
@@ -145,14 +146,14 @@ class ProductionRequirements(BaseModel):
 
 class Governance(BaseModel):
     """Governance rules."""
-    
+
     production_requirements: ProductionRequirements | None = None
     review_policy: dict[str, Any] | None = None
 
 
 class Defaults(BaseModel):
     """Global defaults."""
-    
+
     model: str | None = None
     template_engine: str | None = None
     review_required: bool = True
@@ -160,7 +161,7 @@ class Defaults(BaseModel):
 
 class Manifest(BaseModel):
     """Root manifest schema."""
-    
+
     schema_version: str = "1.0"
     organization: str | None = None
     repository: str | None = None

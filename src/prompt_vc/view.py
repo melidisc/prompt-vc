@@ -109,9 +109,7 @@ def load_prompt_and_meta(
     return meta_path, prompt_path, meta, issues
 
 
-def build_line_annotations(
-    meta: PromptMeta, num_lines: int
-) -> dict[int, list[Annotation]]:
+def build_line_annotations(meta: PromptMeta, num_lines: int) -> dict[int, list[Annotation]]:
     """Build a mapping of line numbers to annotations.
 
     Args:
@@ -154,7 +152,6 @@ def render_annotated_prompt(
     annotation_style = Style(color="yellow", italic=True)
     tag_style = Style(color="cyan")
     line_num_style = Style(color="bright_black")
-    annotated_line_style = Style(bgcolor="yellow", color="black")
 
     # Print header
     console.print(f"\n[bold]{meta.name or meta.id}[/bold]")
@@ -244,9 +241,7 @@ def render_annotated_prompt(
     # Summary
     total_annotations = len(meta.annotations)
     if total_annotations > 0:
-        console.print(
-            f"\n[dim]{total_annotations} annotation(s) in this prompt[/dim]"
-        )
+        console.print(f"\n[dim]{total_annotations} annotation(s) in this prompt[/dim]")
 
 
 def render_meta_summary(meta: PromptMeta, console: Console) -> None:
@@ -314,7 +309,7 @@ def render_meta_summary(meta: PromptMeta, console: Console) -> None:
 
     # Changelog
     if meta.changelog:
-        console.print(f"\n[bold]Recent Changes:[/bold]")
+        console.print("\n[bold]Recent Changes:[/bold]")
         for entry in meta.changelog[:3]:
             console.print(f"  v{entry.version} ({entry.date}): {entry.summary}")
 
@@ -341,11 +336,13 @@ def render_full_info(
     """
     # Header
     console.print()
-    console.print(Panel(
-        f"[bold]{meta.name or meta.id}[/bold]\n[dim]{meta.id}[/dim]",
-        title="Prompt Info",
-        border_style="blue"
-    ))
+    console.print(
+        Panel(
+            f"[bold]{meta.name or meta.id}[/bold]\n[dim]{meta.id}[/dim]",
+            title="Prompt Info",
+            border_style="blue",
+        )
+    )
 
     # Basic metadata
     console.print("\n[bold cyan]Metadata[/bold cyan]")
@@ -433,7 +430,7 @@ def render_full_info(
 
     # Evaluation
     if meta.evaluation:
-        console.print(f"\n[bold cyan]Evaluation[/bold cyan]")
+        console.print("\n[bold cyan]Evaluation[/bold cyan]")
         if meta.evaluation.test_cases_ref:
             console.print(f"  Test Cases: {meta.evaluation.test_cases_ref}")
         if meta.evaluation.metrics:
@@ -447,7 +444,7 @@ def render_full_info(
         console.print(f"\n[bold cyan]Annotations[/bold cyan] ({len(meta.annotations)})")
         for ann in meta.annotations:
             console.print(f"\n  [yellow][{escape(ann.id)}][/yellow]")
-            console.print(f"    Preview: \"{escape(ann.anchor.preview)}\"")
+            console.print(f'    Preview: "{escape(ann.anchor.preview)}"')
             if ann.anchor.line_hint:
                 console.print(f"    Line: {ann.anchor.line_hint}")
             if ann.rationale:
@@ -462,10 +459,11 @@ def render_full_info(
 
     # Changelog - full history
     if meta.changelog:
-        console.print(f"\n[bold cyan]Changelog[/bold cyan]")
+        console.print("\n[bold cyan]Changelog[/bold cyan]")
         for entry in meta.changelog:
             linked = f" [{', '.join(entry.linked_annotations)}]" if entry.linked_annotations else ""
-            console.print(f"  [bold]v{escape(entry.version)}[/bold] ({entry.date}) - {escape(entry.author)}")
+            version_info = f"v{escape(entry.version)}"
+            console.print(f"  [bold]{version_info}[/bold] ({entry.date}) - {escape(entry.author)}")
             console.print(f"    {escape(entry.summary)}{linked}")
 
     console.print()

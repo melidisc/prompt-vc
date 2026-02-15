@@ -1,18 +1,26 @@
 """Command-line interface for prompt-vc."""
 
+from __future__ import annotations
+
+from pathlib import Path
+from typing import TYPE_CHECKING
+
 import click
 from rich.console import Console
 from rich.table import Table
+
+if TYPE_CHECKING:
+    from .models import PromptMeta
 
 console = Console()
 
 
 def show_hash_warnings(
-    prompt_path: "Path",
-    meta: "PromptMeta",
+    prompt_path: Path,
+    meta: PromptMeta,
     auto_fix: bool = False,
-    meta_path: "Path | None" = None,
-) -> "PromptMeta | None":
+    meta_path: Path | None = None,
+) -> PromptMeta | None:
     """Display warnings about stale annotation hashes.
 
     Args:
@@ -24,7 +32,7 @@ def show_hash_warnings(
     Returns:
         Updated PromptMeta if auto_fix was applied, otherwise None
     """
-    from .validation import get_hash_warnings, auto_update_line_hints
+    from .validation import auto_update_line_hints, get_hash_warnings
 
     if not meta.annotations:
         return None
@@ -38,6 +46,7 @@ def show_hash_warnings(
             console.print(f"[green]✓[/green] Auto-updated line_hint for: {', '.join(updated)}")
             # Re-check for remaining warnings with fresh meta
             from .validation import parse_meta_file
+
             updated_meta, _ = parse_meta_file(meta_path)
             if updated_meta:
                 warnings = get_hash_warnings(updated_meta, prompt_path)
@@ -60,12 +69,12 @@ def main() -> None:
 def init(with_manifest: bool) -> None:
     """Initialize a prompt-vc repository."""
     import os
-    
+
     os.makedirs("prompts", exist_ok=True)
     console.print("[green]✓[/green] Created prompts/ directory")
-    
+
     if with_manifest:
-        manifest_content = '''schema_version: "1.0"
+        manifest_content = """schema_version: "1.0"
 organization: my-org
 repository: prompt-library
 
@@ -82,11 +91,11 @@ governance:
     must_have_evaluation: false
     min_annotations: 0
     required_tags: []
-'''
+"""
         with open("prompts/prompts.manifest.yaml", "w") as f:
             f.write(manifest_content)
         console.print("[green]✓[/green] Created prompts/prompts.manifest.yaml")
-    
+
     console.print("\n[bold]Next steps:[/bold]")
     console.print("  prompt-vc new my-first-prompt")
 
@@ -98,26 +107,26 @@ governance:
 def new(prompt_id: str, domain: str | None, fmt: str) -> None:
     """Create a new prompt with metadata file."""
     import os
-    
+
     base_dir = "prompts"
     if domain:
         base_dir = os.path.join(base_dir, domain)
-    
+
     os.makedirs(base_dir, exist_ok=True)
-    
+
     prompt_file = os.path.join(base_dir, f"{prompt_id}.prompt.{fmt}")
     meta_file = os.path.join(base_dir, f"{prompt_id}.prompt.meta.yaml")
-    
+
     # Create prompt file
     with open(prompt_file, "w") as f:
         f.write(f"# {prompt_id}\n\nYour prompt content here.\n")
-    
+
     # Create meta file
     meta_content = f'''schema_version: "1.0"
 
 id: {prompt_id}
 name: {prompt_id.replace("-", " ").title()}
-created: "{__import__('datetime').date.today().isoformat()}"
+created: "{__import__("datetime").date.today().isoformat()}"
 authors: []
 
 intent: |
@@ -136,14 +145,14 @@ annotations: []
 
 changelog:
   - version: "1.0"
-    date: "{__import__('datetime').date.today().isoformat()}"
+    date: "{__import__("datetime").date.today().isoformat()}"
     author: ""
     summary: Initial version
     linked_annotations: []
 '''
     with open(meta_file, "w") as f:
         f.write(meta_content)
-    
+
     console.print(f"[green]✓[/green] Created {prompt_file}")
     console.print(f"[green]✓[/green] Created {meta_file}")
 
@@ -154,6 +163,7 @@ changelog:
 def validate(path: str | None, strict: bool) -> None:
     """Validate prompts and metadata."""
     from pathlib import Path
+
     from .validation import validate_all
 
     search_path = Path(path) if path else None
@@ -222,9 +232,12 @@ def validate(path: str | None, strict: bool) -> None:
 @click.option("--status", "-s", default=None, help="Filter by status")
 @click.option("--owner", "-o", default=None, help="Filter by owner")
 @click.option("--path", "-p", default=None, help="Path to search")
-def list_prompts(domain: str | None, status: str | None, owner: str | None, path: str | None) -> None:
+def list_prompts(
+    domain: str | None, status: str | None, owner: str | None, path: str | None
+) -> None:
     """List all prompts in the repository."""
     from pathlib import Path
+
     from .listing import list_prompts as do_list_prompts
 
     search_path = Path(path) if path else None
@@ -241,7 +254,8 @@ def list_prompts(domain: str | None, status: str | None, owner: str | None, path
             console.print("[dim]Note: --status filter requires a manifest file[/dim]")
         return
 
-    table = Table(title="Prompts" + (" (from manifest)" if used_manifest else " (from directory scan)"))
+    title_suffix = " (from manifest)" if used_manifest else " (from directory scan)"
+    table = Table(title="Prompts" + title_suffix)
     table.add_column("Domain", style="cyan")
     table.add_column("ID", style="green")
     table.add_column("Name")
@@ -256,7 +270,10 @@ def list_prompts(domain: str | None, status: str | None, owner: str | None, path
             "experimental": "dim",
             "deprecated": "red",
         }.get(prompt.status, "")
-        status_text = f"[{status_style}]{prompt.status}[/{status_style}]" if status_style else prompt.status
+        if status_style:
+            status_text = f"[{status_style}]{prompt.status}[/{status_style}]"
+        else:
+            status_text = prompt.status
 
         table.add_row(
             prompt.domain or "-",
@@ -295,7 +312,9 @@ def view(prompt_id: str, annotated: bool, meta: bool, auto_fix: bool) -> None:
 
     # Show hash warnings (and auto-fix if requested)
     if prompt_path:
-        updated_meta = show_hash_warnings(prompt_path, parsed_meta, auto_fix=auto_fix, meta_path=meta_path)
+        updated_meta = show_hash_warnings(
+            prompt_path, parsed_meta, auto_fix=auto_fix, meta_path=meta_path
+        )
         if updated_meta:
             parsed_meta = updated_meta
 
@@ -308,11 +327,11 @@ def view(prompt_id: str, annotated: bool, meta: bool, auto_fix: bool) -> None:
     # Show annotated view if requested or if --meta wasn't specified
     if annotated or not meta:
         if prompt_path is None:
-            console.print(f"[red]✗[/red] No prompt file found")
+            console.print("[red]✗[/red] No prompt file found")
             raise SystemExit(1)
 
         try:
-            with open(prompt_path, "r", encoding="utf-8") as f:
+            with open(prompt_path, encoding="utf-8") as f:
                 prompt_content = f.read()
         except OSError as e:
             console.print(f"[red]✗[/red] Cannot read prompt file: {e}")
@@ -386,8 +405,8 @@ def fix_annotations(prompt_id: str, auto_remove: bool, dry_run: bool) -> None:
 
 
 @main.command()
-@click.option("--status", "-s", default="production", help="Status to audit (default: production)")
-@click.option("--all", "-a", "audit_all", is_flag=True, help="Audit all prompts regardless of status")
+@click.option("--status", "-s", default="production", help="Status to audit")
+@click.option("--all", "-a", "audit_all", is_flag=True, help="Audit all prompts")
 def audit(status: str, audit_all: bool) -> None:
     """Check governance compliance across all prompts."""
     from .audit import run_audit
@@ -396,7 +415,9 @@ def audit(status: str, audit_all: bool) -> None:
     report = run_audit(status_filter=status_filter)
 
     if not report.manifest_path:
-        console.print("[red]✗[/red] No manifest found. Audit requires a prompts.manifest.yaml file.")
+        console.print(
+            "[red]✗[/red] No manifest found. Audit requires a prompts.manifest.yaml file."
+        )
         raise SystemExit(1)
 
     if report.error:
@@ -471,8 +492,8 @@ def audit(status: str, audit_all: bool) -> None:
 @click.option("--auto-fix", is_flag=True, help="Auto-update stale line_hint values")
 def info(prompt_id: str, auto_fix: bool) -> None:
     """Show detailed information about a prompt."""
-    from .view import load_prompt_and_meta, render_full_info
     from .listing import find_manifest, parse_manifest
+    from .view import load_prompt_and_meta, render_full_info
 
     meta_path, prompt_path, parsed_meta, issues = load_prompt_and_meta(prompt_id)
 
@@ -487,7 +508,9 @@ def info(prompt_id: str, auto_fix: bool) -> None:
 
     # Show hash warnings (and auto-fix if requested)
     if prompt_path:
-        updated_meta = show_hash_warnings(prompt_path, parsed_meta, auto_fix=auto_fix, meta_path=meta_path)
+        updated_meta = show_hash_warnings(
+            prompt_path, parsed_meta, auto_fix=auto_fix, meta_path=meta_path
+        )
         if updated_meta:
             parsed_meta = updated_meta
 
@@ -599,15 +622,29 @@ def diff(prompt_id: str, old_ref: str, new_ref: str) -> None:
 
     console.print("[bold]Summary:[/bold]")
     console.print(f"  Lines: [green]+{added_lines}[/green] / [red]-{removed_lines}[/red]")
-    console.print(f"  Annotations: [green]+{added_anns}[/green] / [red]-{removed_anns}[/red] / [yellow]~{modified_anns}[/yellow]")
+    console.print(
+        f"  Annotations: [green]+{added_anns}[/green] / "
+        f"[red]-{removed_anns}[/red] / [yellow]~{modified_anns}[/yellow]"
+    )
 
 
 @main.command()
 @click.argument("prompt_id")
-@click.option("--context", "-c", "context_path", type=click.Path(exists=True), help="Path to JSON/YAML context file")
+@click.option(
+    "--context",
+    "-c",
+    "context_path",
+    type=click.Path(exists=True),
+    help="Path to JSON/YAML context file",
+)
 @click.option("--var", "-v", "variables", multiple=True, help="Variable in key=value format")
-@click.option("--output", "-o", "output_path", type=click.Path(), help="Output file path (default: stdout)")
-def render(prompt_id: str, context_path: str | None, variables: tuple[str, ...], output_path: str | None) -> None:
+@click.option("--output", "-o", "output_path", type=click.Path(), help="Output file")
+def render(
+    prompt_id: str,
+    context_path: str | None,
+    variables: tuple[str, ...],
+    output_path: str | None,
+) -> None:
     """Render a prompt with variables."""
     import json
     from pathlib import Path
@@ -657,8 +694,15 @@ def render(prompt_id: str, context_path: str | None, variables: tuple[str, ...],
 
 
 @main.command()
-@click.option("--output", "-o", "output_path", type=click.Path(), help="Output file path (default: stdout DOT)")
-@click.option("--format", "-f", "output_format", type=click.Choice(["dot", "png", "svg", "pdf"]), default="dot", help="Output format")
+@click.option("--output", "-o", "output_path", type=click.Path(), help="Output file (DOT)")
+@click.option(
+    "--format",
+    "-f",
+    "output_format",
+    type=click.Choice(["dot", "png", "svg", "pdf"]),
+    default="dot",
+    help="Output format",
+)
 @click.option("--no-domains", is_flag=True, help="Don't include domain groupings")
 @click.option("--title", "-t", default="Prompt Dependencies", help="Graph title")
 def graph(output_path: str | None, output_format: str, no_domains: bool, title: str) -> None:
@@ -711,7 +755,7 @@ def graph(output_path: str | None, output_format: str, no_domains: bool, title: 
 
 @main.command()
 @click.argument("prompt_id")
-@click.option("--output", "-o", "output_path", type=click.Path(), help="Output file path (default: stdout)")
+@click.option("--output", "-o", "output_path", type=click.Path(), help="Output file")
 @click.option("--show-deps", is_flag=True, help="Show dependency information")
 def compose(prompt_id: str, output_path: str | None, show_deps: bool) -> None:
     """Compose a prompt by resolving all includes."""

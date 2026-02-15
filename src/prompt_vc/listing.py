@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 from pydantic import ValidationError
 
-from .models import Domain, Manifest, PromptRef
+from .models import Manifest
 from .validation import find_meta_files, parse_meta_file
 
 
@@ -59,7 +59,7 @@ def parse_manifest(manifest_path: Path) -> tuple[Manifest | None, str | None]:
         Tuple of (parsed manifest or None, error message or None)
     """
     try:
-        with open(manifest_path, "r", encoding="utf-8") as f:
+        with open(manifest_path, encoding="utf-8") as f:
             raw_data = yaml.safe_load(f)
     except yaml.YAMLError as e:
         return None, f"Invalid YAML: {e}"
@@ -113,9 +113,7 @@ def list_from_manifest(
 
         # Apply owner filter
         if owner_filter:
-            owner_match = any(
-                owner_filter.lower() in name.lower() for name in owner_names
-            )
+            owner_match = any(owner_filter.lower() in name.lower() for name in owner_names)
             if not owner_match:
                 continue
 
@@ -191,9 +189,7 @@ def list_from_directory(
 
         # Apply owner filter (check authors)
         if owner_filter:
-            owner_match = any(
-                owner_filter.lower() in author.lower() for author in meta.authors
-            )
+            owner_match = any(owner_filter.lower() in author.lower() for author in meta.authors)
             if not owner_match:
                 continue
 
