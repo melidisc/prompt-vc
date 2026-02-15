@@ -521,5 +521,86 @@ def info(prompt_id: str, auto_fix: bool) -> None:
     )
 
 
+@main.command()
+@click.argument("prompt_id")
+@click.option("--old", "-o", "old_ref", default="HEAD~1", help="Old git ref (default: HEAD~1)")
+@click.option("--new", "-n", "new_ref", default="HEAD", help="New git ref (default: HEAD)")
+def diff(prompt_id: str, old_ref: str, new_ref: str) -> None:
+    """Compare prompt versions between git refs."""
+    from rich.markup import escape
+
+    from .diff import diff_prompt
+
+    result = diff_prompt(prompt_id, old_ref=old_ref, new_ref=new_ref)
+
+    if result.error:
+        console.print(f"[red]✗[/red] {result.error}")
+        raise SystemExit(1)
+
+    # Header
+    console.print(f"\n[bold]Diff: {result.prompt_id}[/bold]")
+    console.print(f"  {result.old_ref} → {result.new_ref}")
+    console.print(f"  File: {result.prompt_path}")
+    console.print()
+
+    # Show line diffs with annotation context
+    if result.line_diffs:
+        console.print("[bold]Content Changes:[/bold]")
+        for line_diff in result.line_diffs:
+            if line_diff.change_type == "added":
+                prefix = "[green]+[/green]"
+                line_style = "green"
+            elif line_diff.change_type == "removed":
+                prefix = "[red]-[/red]"
+                line_style = "red"
+            else:
+                prefix = " "
+                line_style = "dim"
+
+            line_num = f"{line_diff.line_number:4d}" if line_diff.line_number else "    "
+            content = escape(line_diff.content)
+            console.print(f"[dim]{line_num}[/dim] {prefix} [{line_style}]{content}[/{line_style}]")
+
+            # Show annotations for this line
+            for ann in line_diff.annotations:
+                ann_preview = escape(ann.anchor.preview[:60])
+                console.print(f"       [cyan]📝 {ann.id}[/cyan]: {ann_preview}...")
+        console.print()
+    else:
+        console.print("[dim]No content changes found.[/dim]")
+        console.print()
+
+    # Show annotation changes
+    if result.annotation_changes:
+        console.print("[bold]Annotation Changes:[/bold]")
+        for change in result.annotation_changes:
+            if change.change_type == "added":
+                icon = "[green]+[/green]"
+                style = "green"
+            elif change.change_type == "removed":
+                icon = "[red]-[/red]"
+                style = "red"
+            else:
+                icon = "[yellow]~[/yellow]"
+                style = "yellow"
+
+            console.print(f"  {icon} [{style}]{change.annotation_id}[/{style}]: {change.details}")
+        console.print()
+    else:
+        console.print("[dim]No annotation changes found.[/dim]")
+        console.print()
+
+    # Summary
+    added_lines = sum(1 for d in result.line_diffs if d.change_type == "added")
+    removed_lines = sum(1 for d in result.line_diffs if d.change_type == "removed")
+    added_anns = sum(1 for c in result.annotation_changes if c.change_type == "added")
+    removed_anns = sum(1 for c in result.annotation_changes if c.change_type == "removed")
+    modified_anns = sum(1 for c in result.annotation_changes if c.change_type == "modified")
+
+    console.print("[bold]Summary:[/bold]")
+    console.print(f"  Lines: [green]+{added_lines}[/green] / [red]-{removed_lines}[/red]")
+    console.print(f"  Annotations: [green]+{added_anns}[/green] / [red]-{removed_anns}[/red] / [yellow]~{modified_anns}[/yellow]")
+
+
 if __name__ == "__main__":
     main()
