@@ -242,7 +242,7 @@ def _get_node_style(node: GraphNode) -> str:
 
 def _get_edge_style(edge: GraphEdge) -> str:
     """Get DOT style attributes for an edge."""
-    parts = []
+    parts: list[str] = []
 
     edge_styles = {
         "depends_on": ('color="#007bff"', 'label="depends on"'),
