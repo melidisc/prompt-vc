@@ -7,7 +7,6 @@ from pathlib import Path
 
 from rich.console import Console
 from rich.markup import escape
-from ruamel.yaml import YAML
 
 from .hashing import extract_preview, hash_content
 from .models import Anchor, Annotation, PromptMeta
@@ -78,25 +77,31 @@ def create_annotation(
     return annotation
 
 
+def _to_plain_dict(obj: object) -> object:
+    """Convert ruamel.yaml objects to plain Python objects."""
+    if isinstance(obj, dict):
+        return {k: _to_plain_dict(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_to_plain_dict(item) for item in obj]
+    else:
+        return obj
+
+
 def save_annotation_to_meta(
     meta_path: Path,
     annotation: Annotation,
 ) -> None:
     """Append an annotation to a meta file.
 
-    Uses ruamel.yaml to preserve formatting and comments.
-
     Args:
         meta_path: Path to the .prompt.meta.yaml file
         annotation: Annotation to add
     """
-    yaml = YAML()
-    yaml.preserve_quotes = True
-    yaml.indent(mapping=2, sequence=2, offset=2)
+    import yaml as pyyaml
 
-    # Read the existing file
+    # Read existing file
     with open(meta_path, "r", encoding="utf-8") as f:
-        raw_data = yaml.load(f)
+        raw_data = pyyaml.safe_load(f)
 
     if raw_data is None:
         raw_data = {}
@@ -124,13 +129,19 @@ def save_annotation_to_meta(
     if annotation.rationale:
         ann_dict["rationale"] = annotation.rationale
     if annotation.tags:
-        ann_dict["tags"] = annotation.tags
+        ann_dict["tags"] = list(annotation.tags)
 
     raw_data["annotations"].append(ann_dict)
 
-    # Write back preserving formatting
+    # Custom dumper for proper indentation
+    class IndentDumper(pyyaml.SafeDumper):
+        """Custom dumper with proper indentation."""
+
+        def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:
+            return super().increase_indent(flow, False)
+
     with open(meta_path, "w", encoding="utf-8") as f:
-        yaml.dump(raw_data, f)
+        pyyaml.dump(raw_data, f, Dumper=IndentDumper, default_flow_style=False, sort_keys=False, allow_unicode=True)
 
 
 def get_existing_annotation_ids(meta: PromptMeta) -> set[str]:
