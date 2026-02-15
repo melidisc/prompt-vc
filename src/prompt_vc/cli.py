@@ -602,5 +602,59 @@ def diff(prompt_id: str, old_ref: str, new_ref: str) -> None:
     console.print(f"  Annotations: [green]+{added_anns}[/green] / [red]-{removed_anns}[/red] / [yellow]~{modified_anns}[/yellow]")
 
 
+@main.command()
+@click.argument("prompt_id")
+@click.option("--context", "-c", "context_path", type=click.Path(exists=True), help="Path to JSON/YAML context file")
+@click.option("--var", "-v", "variables", multiple=True, help="Variable in key=value format")
+@click.option("--output", "-o", "output_path", type=click.Path(), help="Output file path (default: stdout)")
+def render(prompt_id: str, context_path: str | None, variables: tuple[str, ...], output_path: str | None) -> None:
+    """Render a prompt with variables."""
+    import json
+    from pathlib import Path
+
+    from .render import render_prompt
+
+    # Parse inline variables
+    inline_context: dict = {}
+    for var in variables:
+        if "=" in var:
+            key, value = var.split("=", 1)
+            # Try to parse as JSON for complex values
+            try:
+                inline_context[key] = json.loads(value)
+            except json.JSONDecodeError:
+                inline_context[key] = value
+        else:
+            console.print(f"[red]✗[/red] Invalid variable format: {var} (expected key=value)")
+            raise SystemExit(1)
+
+    result = render_prompt(
+        prompt_id,
+        context=inline_context if inline_context else None,
+        context_path=Path(context_path) if context_path else None,
+    )
+
+    if result.error:
+        console.print(f"[red]✗[/red] {result.error}")
+        if result.missing_variables:
+            console.print(f"[dim]Missing: {', '.join(result.missing_variables)}[/dim]")
+        raise SystemExit(1)
+
+    # Output the rendered content
+    if output_path:
+        try:
+            Path(output_path).write_text(result.rendered_content, encoding="utf-8")
+            console.print(f"[green]✓[/green] Rendered to {output_path}")
+            console.print(f"[dim]Template engine: {result.template_engine}[/dim]")
+            if result.variables_used:
+                console.print(f"[dim]Variables: {', '.join(result.variables_used)}[/dim]")
+        except OSError as e:
+            console.print(f"[red]✗[/red] Cannot write output file: {e}")
+            raise SystemExit(1)
+    else:
+        # Output to stdout
+        console.print(result.rendered_content)
+
+
 if __name__ == "__main__":
     main()
