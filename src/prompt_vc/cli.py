@@ -792,5 +792,44 @@ def compose(prompt_id: str, output_path: str | None, show_deps: bool) -> None:
         console.print(result.composed_content)
 
 
+@main.command()
+@click.option("--port", "-p", default=8080, help="Port to serve on")
+@click.option("--host", default="127.0.0.1", help="Host to bind to")
+@click.option("--dev", is_flag=True, help="Enable dev mode (CORS, auto-reload)")
+@click.option("--open", "open_browser", is_flag=True, help="Open browser on start")
+def serve(port: int, host: str, dev: bool, open_browser: bool) -> None:
+    """Start the prompt-vc web UI."""
+    try:
+        import uvicorn
+    except ImportError:
+        console.print(
+            "[red]✗[/red] Web dependencies not installed. "
+            "Install with: [bold]pip install prompt-vc\\[web][/bold]"
+        )
+        raise SystemExit(1)
+
+    from .server.app import create_app
+
+    app = create_app(workspace_root=Path.cwd(), dev=dev)
+
+    if open_browser:
+        import threading
+        import webbrowser
+
+        def _open() -> None:
+            import time
+
+            time.sleep(1)
+            webbrowser.open(f"http://{host}:{port}")
+
+        threading.Thread(target=_open, daemon=True).start()
+
+    console.print(f"[green]✓[/green] Starting prompt-vc server at http://{host}:{port}")
+    if dev:
+        console.print("[dim]Dev mode: CORS enabled, auto-reload active[/dim]")
+
+    uvicorn.run(app, host=host, port=port, reload=dev)
+
+
 if __name__ == "__main__":
     main()
