@@ -124,6 +124,7 @@ For repositories with multiple prompts. See [docs/manifest-schema.md](docs/manif
 
 ## Documentation
 
+- [End-to-End Example](docs/end-to-end-example.md) - Complete walkthrough
 - [Meta File Schema](docs/meta-schema.md)
 - [Manifest Schema](docs/manifest-schema.md)
 - [CLI Reference](docs/cli.md)
