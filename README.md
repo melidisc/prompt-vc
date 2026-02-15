@@ -1,5 +1,7 @@
 # prompt-vc
 
+![prompt-vc](https://i.imgur.com/sZMYdwd.png)
+
 Version control metadata for LLM prompts. Track *why* each line exists, not just *what* it is.
 
 ## The Problem
