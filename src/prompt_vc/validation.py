@@ -1,15 +1,13 @@
 """Validation logic for prompt-vc."""
 
-import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
 
 import yaml
 from pydantic import ValidationError
 
-from .hashing import find_text_in_file, hash_content
+from .hashing import find_text_in_file
 from .models import PromptMeta
 
 
@@ -80,7 +78,7 @@ def parse_meta_file(meta_path: Path) -> tuple[PromptMeta | None, list[Validation
     issues: list[ValidationIssue] = []
 
     try:
-        with open(meta_path, "r", encoding="utf-8") as f:
+        with open(meta_path, encoding="utf-8") as f:
             raw_data = yaml.safe_load(f)
     except yaml.YAMLError as e:
         issues.append(ValidationIssue(
@@ -174,7 +172,7 @@ def verify_annotation_hashes(
 
     # Load prompt lines for suggestion generation on orphaned annotations
     try:
-        with open(prompt_path, "r", encoding="utf-8") as f:
+        with open(prompt_path, encoding="utf-8") as f:
             prompt_lines = f.read().splitlines()
     except OSError as e:
         issues.append(ValidationIssue(
@@ -195,7 +193,10 @@ def verify_annotation_hashes(
             issues.append(ValidationIssue(
                 level="warning",
                 file=str(meta_path),
-                message=f"Annotation '{result.annotation_id}' line_hint is {result.original_line} but content found at line {result.found_line}",
+                message=(
+                    f"Annotation '{result.annotation_id}' line_hint is "
+                    f"{result.original_line} but content found at line {result.found_line}"
+                ),
                 line=result.original_line,
                 annotation_id=result.annotation_id
             ))
@@ -214,7 +215,10 @@ def verify_annotation_hashes(
             issues.append(ValidationIssue(
                 level="error",
                 file=str(meta_path),
-                message=f"Orphaned annotation '{result.annotation_id}': hash does not match any content in prompt file.{suggestion}",
+                message=(
+                    f"Orphaned annotation '{result.annotation_id}': "
+                    f"hash does not match any content in prompt file.{suggestion}"
+                ),
                 line=result.original_line,
                 annotation_id=result.annotation_id
             ))
@@ -234,7 +238,7 @@ def check_variable_references(
     issues: list[ValidationIssue] = []
 
     try:
-        with open(prompt_path, "r", encoding="utf-8") as f:
+        with open(prompt_path, encoding="utf-8") as f:
             prompt_content = f.read()
     except OSError:
         # Already reported elsewhere
@@ -292,7 +296,7 @@ def validate_prompt(meta_path: Path) -> ValidationResult:
         result.issues.append(ValidationIssue(
             level="error",
             file=str(meta_path),
-            message=f"No corresponding prompt file found for meta file"
+            message="No corresponding prompt file found for meta file"
         ))
         return result
 
@@ -407,7 +411,7 @@ def check_annotation_hashes(
                 annotation_id=annotation.id,
                 status="orphaned",
                 original_line=line_hint,
-                message=f"Hash does not match any content in file",
+                message="Hash does not match any content in file",
             ))
 
     return results
@@ -441,7 +445,7 @@ def auto_update_line_hints(
     yaml.preserve_quotes = True
     yaml.indent(mapping=2, sequence=2, offset=2)
 
-    with open(meta_path, "r", encoding="utf-8") as f:
+    with open(meta_path, encoding="utf-8") as f:
         raw_data = yaml.load(f)
 
     if raw_data is None or "annotations" not in raw_data:

@@ -1,6 +1,5 @@
 """Tests for prompt-vc."""
 
-import pytest
 
 from prompt_vc.hashing import (
     extract_preview,
@@ -8,7 +7,7 @@ from prompt_vc.hashing import (
     normalize_text,
     similarity_score,
 )
-from prompt_vc.models import Annotation, Anchor, PromptMeta
+from prompt_vc.models import Anchor, Annotation, PromptMeta
 
 
 class TestHashing:

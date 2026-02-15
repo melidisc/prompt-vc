@@ -71,7 +71,7 @@ def update_annotation_in_meta(
     yaml.preserve_quotes = True
     yaml.indent(mapping=2, sequence=2, offset=2)
 
-    with open(meta_path, "r", encoding="utf-8") as f:
+    with open(meta_path, encoding="utf-8") as f:
         raw_data = yaml.load(f)
 
     if raw_data is None or "annotations" not in raw_data:
@@ -102,7 +102,7 @@ def remove_annotation_from_meta(
     yaml.preserve_quotes = True
     yaml.indent(mapping=2, sequence=2, offset=2)
 
-    with open(meta_path, "r", encoding="utf-8") as f:
+    with open(meta_path, encoding="utf-8") as f:
         raw_data = yaml.load(f)
 
     if raw_data is None or "annotations" not in raw_data:

@@ -77,16 +77,6 @@ def create_annotation(
     return annotation
 
 
-def _to_plain_dict(obj: object) -> object:
-    """Convert ruamel.yaml objects to plain Python objects."""
-    if isinstance(obj, dict):
-        return {k: _to_plain_dict(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [_to_plain_dict(item) for item in obj]
-    else:
-        return obj
-
-
 def save_annotation_to_meta(
     meta_path: Path,
     annotation: Annotation,
@@ -100,7 +90,7 @@ def save_annotation_to_meta(
     import yaml as pyyaml
 
     # Read existing file
-    with open(meta_path, "r", encoding="utf-8") as f:
+    with open(meta_path, encoding="utf-8") as f:
         raw_data = pyyaml.safe_load(f)
 
     if raw_data is None:
@@ -141,7 +131,10 @@ def save_annotation_to_meta(
             return super().increase_indent(flow, False)
 
     with open(meta_path, "w", encoding="utf-8") as f:
-        pyyaml.dump(raw_data, f, Dumper=IndentDumper, default_flow_style=False, sort_keys=False, allow_unicode=True)
+        pyyaml.dump(
+            raw_data, f, Dumper=IndentDumper,
+            default_flow_style=False, sort_keys=False, allow_unicode=True
+        )
 
 
 def get_existing_annotation_ids(meta: PromptMeta) -> set[str]:
@@ -221,7 +214,7 @@ def interactive_annotate(
 
     # Read prompt content
     try:
-        with open(prompt_path, "r", encoding="utf-8") as f:
+        with open(prompt_path, encoding="utf-8") as f:
             prompt_content = f.read()
     except OSError as e:
         return False, f"Cannot read prompt file: {e}"

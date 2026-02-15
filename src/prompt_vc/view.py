@@ -154,7 +154,6 @@ def render_annotated_prompt(
     annotation_style = Style(color="yellow", italic=True)
     tag_style = Style(color="cyan")
     line_num_style = Style(color="bright_black")
-    annotated_line_style = Style(bgcolor="yellow", color="black")
 
     # Print header
     console.print(f"\n[bold]{meta.name or meta.id}[/bold]")
@@ -314,7 +313,7 @@ def render_meta_summary(meta: PromptMeta, console: Console) -> None:
 
     # Changelog
     if meta.changelog:
-        console.print(f"\n[bold]Recent Changes:[/bold]")
+        console.print("\n[bold]Recent Changes:[/bold]")
         for entry in meta.changelog[:3]:
             console.print(f"  v{entry.version} ({entry.date}): {entry.summary}")
 
@@ -433,7 +432,7 @@ def render_full_info(
 
     # Evaluation
     if meta.evaluation:
-        console.print(f"\n[bold cyan]Evaluation[/bold cyan]")
+        console.print("\n[bold cyan]Evaluation[/bold cyan]")
         if meta.evaluation.test_cases_ref:
             console.print(f"  Test Cases: {meta.evaluation.test_cases_ref}")
         if meta.evaluation.metrics:
@@ -462,10 +461,11 @@ def render_full_info(
 
     # Changelog - full history
     if meta.changelog:
-        console.print(f"\n[bold cyan]Changelog[/bold cyan]")
+        console.print("\n[bold cyan]Changelog[/bold cyan]")
         for entry in meta.changelog:
             linked = f" [{', '.join(entry.linked_annotations)}]" if entry.linked_annotations else ""
-            console.print(f"  [bold]v{escape(entry.version)}[/bold] ({entry.date}) - {escape(entry.author)}")
+            version_info = f"v{escape(entry.version)}"
+            console.print(f"  [bold]{version_info}[/bold] ({entry.date}) - {escape(entry.author)}")
             console.print(f"    {escape(entry.summary)}{linked}")
 
     console.print()

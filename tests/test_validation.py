@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from prompt_vc.models import Anchor, Annotation, PromptMeta
 from prompt_vc.validation import (
     ValidationIssue,

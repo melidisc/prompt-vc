@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from prompt_vc.compose import (
     ComposeResult,
     PromptDependency,

@@ -1,14 +1,12 @@
 """Audit functionality for prompt-vc governance compliance."""
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
-
-import re
 
 from .listing import find_manifest, list_from_manifest, parse_manifest
 from .models import ProductionRequirements, PromptMeta
 from .validation import parse_meta_file
-
 
 # Pattern to match any .prompt.* extension and convert to .prompt.meta.yaml
 PROMPT_EXT_PATTERN = re.compile(r"\.prompt\.[^.]+$")
@@ -117,7 +115,10 @@ def check_production_requirements(
         if annotation_count < requirements.min_annotations:
             issues.append(ComplianceIssue(
                 requirement="min_annotations",
-                message=f"Prompt must have at least {requirements.min_annotations} annotations (has {annotation_count})",
+                message=(
+                    f"Prompt must have at least {requirements.min_annotations} "
+                    f"annotations (has {annotation_count})"
+                ),
             ))
 
     # Check required_tags
@@ -169,7 +170,10 @@ def audit_prompt(
             path=path,
             compliant=False,
             skipped=True,
-            skip_reason=f"Could not parse meta file: {parse_issues[0].message if parse_issues else 'unknown error'}",
+            skip_reason=(
+                f"Could not parse meta file: "
+                f"{parse_issues[0].message if parse_issues else 'unknown error'}"
+            ),
         )
 
     # Check against requirements

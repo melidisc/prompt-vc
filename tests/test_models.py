@@ -1,7 +1,5 @@
 """Tests for prompt_vc.models."""
 
-import pytest
-from pydantic import ValidationError
 
 from prompt_vc.models import (
     Anchor,
