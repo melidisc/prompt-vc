@@ -656,5 +656,58 @@ def render(prompt_id: str, context_path: str | None, variables: tuple[str, ...],
         console.print(result.rendered_content)
 
 
+@main.command()
+@click.option("--output", "-o", "output_path", type=click.Path(), help="Output file path (default: stdout DOT)")
+@click.option("--format", "-f", "output_format", type=click.Choice(["dot", "png", "svg", "pdf"]), default="dot", help="Output format")
+@click.option("--no-domains", is_flag=True, help="Don't include domain groupings")
+@click.option("--title", "-t", default="Prompt Dependencies", help="Graph title")
+def graph(output_path: str | None, output_format: str, no_domains: bool, title: str) -> None:
+    """Generate a dependency graph of prompts."""
+    from pathlib import Path
+
+    from .graph import build_graph, generate_dot, render_graph
+
+    result = build_graph(include_domains=not no_domains)
+
+    if result.error:
+        console.print(f"[red]✗[/red] {result.error}")
+        raise SystemExit(1)
+
+    if not result.nodes:
+        console.print("[yellow]![/yellow] No prompts found in manifest")
+        return
+
+    # Generate output
+    if output_format == "dot":
+        dot_output = generate_dot(result, title=title)
+        if output_path:
+            try:
+                Path(output_path).write_text(dot_output, encoding="utf-8")
+                console.print(f"[green]✓[/green] DOT file written to {output_path}")
+            except OSError as e:
+                console.print(f"[red]✗[/red] Cannot write file: {e}")
+                raise SystemExit(1)
+        else:
+            console.print(dot_output)
+    else:
+        # Render to image format
+        if not output_path:
+            output_path = f"prompt-graph.{output_format}"
+
+        success, message = render_graph(
+            result,
+            Path(output_path),
+            output_format=output_format,
+            title=title,
+        )
+
+        if success:
+            console.print(f"[green]✓[/green] {message}")
+            console.print(f"[dim]Nodes: {len(result.nodes)}, Edges: {len(result.edges)}[/dim]")
+        else:
+            console.print(f"[red]✗[/red] {message}")
+            raise SystemExit(1)
+
+
 if __name__ == "__main__":
     main()

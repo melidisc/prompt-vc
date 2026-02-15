@@ -82,7 +82,7 @@
 
 ## Phase 6: Advanced Features
 
-- [ ] **Implement `graph` command**
+- [x] **Implement `graph` command**
   - Parse relationships from manifest
   - Generate dependency graph (DOT, PNG, SVG)
   - Show cross-prompt dependencies

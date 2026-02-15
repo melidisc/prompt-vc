@@ -20,7 +20,8 @@ src/prompt_vc/
 ├── fix_annotations.py # Fix orphaned annotations
 ├── audit.py           # Governance compliance auditing
 ├── diff.py            # Git-based version comparison
-└── render.py          # Template rendering with Jinja2
+├── render.py          # Template rendering with Jinja2
+└── graph.py           # Dependency graph generation (DOT/PNG/SVG)
 ```
 
 ## Key Concepts
@@ -44,6 +45,7 @@ Implemented:
 - `prompt-vc audit [--status] [--all]` - Check governance compliance against production_requirements
 - `prompt-vc diff <id> [--old] [--new]` - Compare prompt versions between git refs
 - `prompt-vc render <id> [--context] [--var] [--output]` - Render prompt with Jinja2 variables
+- `prompt-vc graph [--output] [--format] [--no-domains] [--title]` - Generate dependency graph
 
 Note: Commands with `--auto-fix` will automatically update stale `line_hint` values when content has moved.
 
@@ -113,12 +115,13 @@ prompt-vc --help
 │ • similarity  │          └─────────────────┘          └─────────────────┘
 └───────────────┘                   │
                                     ▼
-                           ┌─────────────────┐
-                           │fix_annotations.py│
-                           │                 │
-                           │ • fuzzy_match   │
-                           │ • fix_orphaned  │
-                           └─────────────────┘
+                           ┌─────────────────┐          ┌─────────────────┐
+                           │fix_annotations.py│         │    graph.py     │
+                           │                 │          │                 │
+                           │ • fuzzy_match   │          │ • build_graph   │
+                           │ • fix_orphaned  │          │ • generate_dot  │
+                           └─────────────────┘          │ • render_graph  │
+                                                        └─────────────────┘
 ```
 
 ## Data Models
