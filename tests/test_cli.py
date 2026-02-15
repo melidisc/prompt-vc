@@ -1,5 +1,6 @@
 """CLI integration tests for prompt-vc."""
 
+import os
 from pathlib import Path
 
 import pytest
@@ -123,9 +124,10 @@ class TestListCommand:
 class TestInfoCommand:
     """Tests for info command."""
 
-    def test_info_prompt(self, runner: CliRunner, prompt_dir: Path) -> None:
-        import os
-        os.chdir(prompt_dir)
+    def test_info_prompt(
+        self, runner: CliRunner, prompt_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(prompt_dir)
 
         result = runner.invoke(main, ["info", "refund-handler"])
 
@@ -136,17 +138,19 @@ class TestInfoCommand:
 class TestViewCommand:
     """Tests for view command."""
 
-    def test_view_prompt(self, runner: CliRunner, prompt_dir: Path) -> None:
-        import os
-        os.chdir(prompt_dir)
+    def test_view_prompt(
+        self, runner: CliRunner, prompt_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(prompt_dir)
 
         result = runner.invoke(main, ["view", "refund-handler"])
 
         assert result.exit_code in (0, 1)
 
-    def test_view_annotated(self, runner: CliRunner, prompt_dir: Path) -> None:
-        import os
-        os.chdir(prompt_dir)
+    def test_view_annotated(
+        self, runner: CliRunner, prompt_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(prompt_dir)
 
         result = runner.invoke(main, ["view", "refund-handler", "--annotated"])
 
@@ -156,18 +160,20 @@ class TestViewCommand:
 class TestAuditCommand:
     """Tests for audit command."""
 
-    def test_audit_basic(self, runner: CliRunner, prompt_dir: Path) -> None:
-        import os
-        os.chdir(prompt_dir)
+    def test_audit_basic(
+        self, runner: CliRunner, prompt_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(prompt_dir)
 
         result = runner.invoke(main, ["audit"])
 
         # Should run audit
         assert result.exit_code in (0, 1)
 
-    def test_audit_with_status_filter(self, runner: CliRunner, prompt_dir: Path) -> None:
-        import os
-        os.chdir(prompt_dir)
+    def test_audit_with_status_filter(
+        self, runner: CliRunner, prompt_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(prompt_dir)
 
         result = runner.invoke(main, ["audit", "--status", "production"])
 
@@ -177,7 +183,9 @@ class TestAuditCommand:
 class TestRenderCommand:
     """Tests for render command."""
 
-    def test_render_basic(self, runner: CliRunner, tmp_path: Path) -> None:
+    def test_render_basic(
+        self, runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         # Create a simple jinja prompt
         prompt = tmp_path / "test.prompt.jinja"
         prompt.write_text("Hello, {{ name }}!")
@@ -194,15 +202,16 @@ variables:
     default: World
 """)
 
-        import os
-        os.chdir(tmp_path)
+        monkeypatch.chdir(tmp_path)
 
         result = runner.invoke(main, ["render", "test"])
 
         assert result.exit_code == 0
         assert "Hello, World!" in result.output
 
-    def test_render_with_variable(self, runner: CliRunner, tmp_path: Path) -> None:
+    def test_render_with_variable(
+        self, runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         prompt = tmp_path / "test.prompt.jinja"
         prompt.write_text("Hello, {{ name }}!")
 
@@ -218,8 +227,7 @@ variables:
     required: true
 """)
 
-        import os
-        os.chdir(tmp_path)
+        monkeypatch.chdir(tmp_path)
 
         result = runner.invoke(main, ["render", "test", "-v", "name=Alice"])
 
@@ -230,9 +238,10 @@ variables:
 class TestGraphCommand:
     """Tests for graph command."""
 
-    def test_graph_dot_output(self, runner: CliRunner, prompt_dir: Path) -> None:
-        import os
-        os.chdir(prompt_dir)
+    def test_graph_dot_output(
+        self, runner: CliRunner, prompt_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(prompt_dir)
 
         result = runner.invoke(main, ["graph"])
 
@@ -240,9 +249,10 @@ class TestGraphCommand:
         if result.exit_code == 0:
             assert "digraph" in result.output
 
-    def test_graph_with_title(self, runner: CliRunner, prompt_dir: Path) -> None:
-        import os
-        os.chdir(prompt_dir)
+    def test_graph_with_title(
+        self, runner: CliRunner, prompt_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(prompt_dir)
 
         result = runner.invoke(main, ["graph", "--title", "My Graph"])
 
@@ -253,22 +263,25 @@ class TestGraphCommand:
 class TestComposeCommand:
     """Tests for compose command."""
 
-    def test_compose_simple(self, runner: CliRunner, tmp_path: Path) -> None:
+    def test_compose_simple(
+        self, runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         prompt = tmp_path / "test.prompt.md"
         prompt.write_text("Simple content")
 
         meta = tmp_path / "test.prompt.meta.yaml"
         meta.write_text("schema_version: '1.0'\nid: test")
 
-        import os
-        os.chdir(tmp_path)
+        monkeypatch.chdir(tmp_path)
 
         result = runner.invoke(main, ["compose", "test"])
 
         assert result.exit_code == 0
         assert "Simple content" in result.output
 
-    def test_compose_with_deps(self, runner: CliRunner, tmp_path: Path) -> None:
+    def test_compose_with_deps(
+        self, runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         main_prompt = tmp_path / "main.prompt.md"
         main_prompt.write_text("Start\n{% include 'sub' %}\nEnd")
 
@@ -281,8 +294,7 @@ class TestComposeCommand:
         sub_meta = tmp_path / "sub.prompt.meta.yaml"
         sub_meta.write_text("schema_version: '1.0'\nid: sub")
 
-        import os
-        os.chdir(tmp_path)
+        monkeypatch.chdir(tmp_path)
 
         result = runner.invoke(main, ["compose", "main", "--show-deps"])
 
@@ -293,9 +305,10 @@ class TestComposeCommand:
 class TestDiffCommand:
     """Tests for diff command."""
 
-    def test_diff_basic(self, runner: CliRunner, prompt_dir: Path) -> None:
-        import os
-        os.chdir(prompt_dir)
+    def test_diff_basic(
+        self, runner: CliRunner, prompt_dir: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(prompt_dir)
 
         # Diff requires git history, so may fail
         result = runner.invoke(main, ["diff", "refund-handler"])

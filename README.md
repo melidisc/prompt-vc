@@ -50,6 +50,21 @@ prompt-vc view customer-support --annotated
 
 # Add an annotation to a prompt
 prompt-vc annotate customer-support --line 12
+
+# Check governance compliance
+prompt-vc audit
+
+# Compare versions between git refs
+prompt-vc diff customer-support --old HEAD~1
+
+# Render a Jinja template with variables
+prompt-vc render customer-support -v customer_name=John
+
+# Generate dependency graph (DOT format)
+prompt-vc graph
+
+# Compose prompt with resolved includes
+prompt-vc compose customer-support
 ```
 
 ## File Formats

@@ -1,6 +1,5 @@
 """Tests for prompt_vc.validation."""
 
-import tempfile
 from pathlib import Path
 
 import pytest
