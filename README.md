@@ -30,7 +30,10 @@ Your prompts stay **portable and tool-agnostic**. The `.meta.yaml` captures:
 ## Quick Start
 
 ```bash
-# Install
+# Install with uv (recommended)
+uv add prompt-vc
+
+# Or install with pip
 pip install prompt-vc
 
 # Initialize a prompt repository

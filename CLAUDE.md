@@ -53,21 +53,34 @@ Note: Commands with `--auto-fix` will automatically update stale `line_hint` val
 
 ## Development
 
+This project uses [uv](https://docs.astral.sh/uv/) for dependency management.
+
 ```bash
-# Install in dev mode
-pip install -e ".[dev]"
+# Install dependencies (creates virtual environment automatically)
+uv sync --all-extras --dev
 
 # Run tests
-pytest tests/ -v
+uv run pytest tests/ -v
 
 # Run linting
-ruff check src/ tests/
+uv run ruff check src/ tests/
 
 # Run type checking
-mypy src/prompt_vc/ --ignore-missing-imports
+uv run mypy src/prompt_vc/ --ignore-missing-imports
 
 # Run CLI
+uv run prompt-vc --help
+
+# Or activate the virtual environment
+source .venv/bin/activate
 prompt-vc --help
+```
+
+### Alternative: pip install
+
+```bash
+pip install -e ".[dev]"
+pytest tests/ -v
 ```
 
 ## Testing
