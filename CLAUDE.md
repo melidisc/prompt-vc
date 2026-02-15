@@ -19,7 +19,8 @@ src/prompt_vc/
 ├── annotate.py        # Annotation creation and management
 ├── fix_annotations.py # Fix orphaned annotations
 ├── audit.py           # Governance compliance auditing
-└── diff.py            # Git-based version comparison
+├── diff.py            # Git-based version comparison
+└── render.py          # Template rendering with Jinja2
 ```
 
 ## Key Concepts
@@ -42,6 +43,7 @@ Implemented:
 - `prompt-vc fix-annotations <id> [--auto-remove] [--dry-run]` - Fix orphaned annotations
 - `prompt-vc audit [--status] [--all]` - Check governance compliance against production_requirements
 - `prompt-vc diff <id> [--old] [--new]` - Compare prompt versions between git refs
+- `prompt-vc render <id> [--context] [--var] [--output]` - Render prompt with Jinja2 variables
 
 Note: Commands with `--auto-fix` will automatically update stale `line_hint` values when content has moved.
 

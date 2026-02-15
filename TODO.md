@@ -54,13 +54,13 @@
 
 ## Phase 4: Rendering & Templates
 
-- [ ] **Implement `render` command**
+- [x] **Implement `render` command**
   - Load prompt file
   - Detect template engine from meta (`jinja2`, `handlebars`, `none`)
   - Apply variables from `--context` JSON/YAML file
   - Output rendered prompt to stdout or file
 
-- [ ] **Variable validation**
+- [x] **Variable validation**
   - Check required variables are provided
   - Validate types against schema if `schema_ref` is specified
 
