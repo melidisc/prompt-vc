@@ -1,6 +1,6 @@
 # prompt-vc
 
-![prompt-vc](https://i.imgur.com/IqDCGyg.png)
+![prompt-vc](https://i.imgur.com/XzwyglW.png)
 
 Version control metadata for LLM prompts. Track *why* each line exists, not just *what* it is.
 
