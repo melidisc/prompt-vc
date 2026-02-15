@@ -17,7 +17,8 @@ src/prompt_vc/
 ├── view.py            # View/display functionality
 ├── listing.py         # Prompt listing from manifest or directory
 ├── annotate.py        # Annotation creation and management
-└── fix_annotations.py # Fix orphaned annotations
+├── fix_annotations.py # Fix orphaned annotations
+└── audit.py           # Governance compliance auditing
 ```
 
 ## Key Concepts
@@ -38,11 +39,12 @@ Implemented:
 - `prompt-vc info <id> [--auto-fix]` - Show detailed prompt information (shows hash warnings)
 - `prompt-vc annotate <id> [--line] [--rationale] [--source] [--tags] [--author]` - Add annotations
 - `prompt-vc fix-annotations <id> [--auto-remove] [--dry-run]` - Fix orphaned annotations
+- `prompt-vc audit [--status] [--all]` - Check governance compliance against production_requirements
 
 Note: Commands with `--auto-fix` will automatically update stale `line_hint` values when content has moved.
 
 Stubbed (TODO):
-- `prompt-vc audit` - Check governance compliance
+- `prompt-vc diff` - Compare prompt versions
 
 ## Development
 
@@ -69,3 +71,103 @@ prompt-vc --help
 - Pydantic v2 for data models
 - Click for CLI
 - Rich for terminal output
+
+## Module Dependencies
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              prompt-vc CLI                                   │
+│                              (cli.py)                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                     │
+        ┌────────────────────────────┼────────────────────────────┐
+        │                            │                            │
+        ▼                            ▼                            ▼
+┌───────────────┐          ┌─────────────────┐          ┌─────────────────┐
+│    init       │          │   validate      │          │    list         │
+│    new        │          │   view          │          │                 │
+└───────────────┘          │   info          │          └────────┬────────┘
+                           │   annotate      │                   │
+                           │   fix-annotations│                  │
+                           │   audit         │                   │
+                           └────────┬────────┘                   │
+                                    │                            │
+        ┌───────────────────────────┼────────────────────────────┤
+        │                           │                            │
+        ▼                           ▼                            ▼
+┌───────────────┐          ┌─────────────────┐          ┌─────────────────┐
+│  validation.py│◄────────►│    view.py      │          │   listing.py    │
+│               │          │                 │          │                 │
+│ • parse_meta  │          │ • render_prompt │          │ • find_manifest │
+│ • validate    │          │ • render_meta   │          │ • parse_manifest│
+│ • hash_check  │          │ • render_info   │          │ • list_prompts  │
+└───────┬───────┘          └────────┬────────┘          └────────┬────────┘
+        │                           │                            │
+        ▼                           ▼                            ▼
+┌───────────────┐          ┌─────────────────┐          ┌─────────────────┐
+│  hashing.py   │          │   annotate.py   │          │    audit.py     │
+│               │          │                 │          │                 │
+│ • hash_content│          │ • add_annotation│          │ • run_audit     │
+│ • find_text   │          │ • generate_id   │          │ • check_reqs    │
+│ • similarity  │          └─────────────────┘          └─────────────────┘
+└───────────────┘                   │
+                                    ▼
+                           ┌─────────────────┐
+                           │fix_annotations.py│
+                           │                 │
+                           │ • fuzzy_match   │
+                           │ • fix_orphaned  │
+                           └─────────────────┘
+```
+
+## Data Models
+
+```
+┌───────────────────────────────────────────────────────────────────────────┐
+│                              models.py                                     │
+│                                                                            │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐  │
+│  │ PromptMeta  │  │  Manifest   │  │ Annotation  │  │ProductionReqs   │  │
+│  │             │  │             │  │             │  │                 │  │
+│  │ • id        │  │ • domains   │  │ • anchor    │  │ • must_have_*   │  │
+│  │ • intent    │  │ • governance│  │ • rationale │  │ • min_*         │  │
+│  │ • variables │  │ • defaults  │  │ • tags      │  │ • required_tags │  │
+│  │ • annotations│ │ • relations │  │ • source    │  │                 │  │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────────┘  │
+└───────────────────────────────────────────────────────────────────────────┘
+```
+
+## Data Flow
+
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│   User CLI   │────►│  Parse Meta  │────►│   Validate   │
+│   Command    │     │   (YAML)     │     │   (Pydantic) │
+└──────────────┘     └──────────────┘     └──────────────┘
+                                                  │
+                     ┌────────────────────────────┤
+                     │                            │
+                     ▼                            ▼
+              ┌──────────────┐            ┌──────────────┐
+              │ Hash Verify  │            │ Governance   │
+              │ Annotations  │            │ Compliance   │
+              └──────────────┘            └──────────────┘
+                     │                            │
+                     └────────────┬───────────────┘
+                                  │
+                                  ▼
+                           ┌──────────────┐
+                           │ Rich Output  │
+                           │ (Terminal)   │
+                           └──────────────┘
+```
+
+## File System Layout
+
+```
+prompts/
+├── prompts.manifest.yaml          (repository config & governance)
+└── domain/
+    ├── prompt-id.prompt.md        (prompt content)
+    └── prompt-id.prompt.meta.yaml (metadata & annotations)
+```

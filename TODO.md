@@ -42,7 +42,7 @@
 
 ## Phase 3: Governance & Audit
 
-- [ ] **Implement `audit` command**
+- [x] **Implement `audit` command**
   - Load governance rules from manifest
   - Check each prompt against `production_requirements`
   - Report compliance status per prompt
