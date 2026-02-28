@@ -311,3 +311,50 @@ Walks through each issue and prompts for resolution:
 - Update line hints
 - Remove orphaned annotations
 - Re-anchor to similar text
+
+---
+
+### `prompt-vc bump`
+
+Bump the version of a prompt and add a changelog entry.
+
+```bash
+prompt-vc bump <id> <major|minor|patch> --summary <text> [options]
+```
+
+**Arguments:**
+- `<id>` - Prompt ID or path
+- `<major|minor|patch>` - Version bump type
+
+**Options:**
+- `--summary, -s <text>` - Summary of changes (required)
+- `--author, -a <email>` - Author email (defaults to git config)
+- `--link, -l <ann_id>` - Link to annotation ID (can be repeated)
+- `--dry-run` - Preview changes without writing
+
+**Version bump rules:**
+- **major**: Breaking changes to output format or behavior (2.1 → 3.0)
+- **minor**: New capabilities, backward compatible (2.1 → 2.2)
+- **patch**: Bug fixes, wording tweaks (2.1 → 2.1.1)
+
+**Example:**
+```bash
+# Patch version for typo fix
+$ prompt-vc bump refund-handler patch -s "Fixed typo in greeting"
+✓ Bumped version from 2.1 to 2.1.1
+  Version: 2.1.1
+  Author: dev@example.com
+  Date: 2024-03-20
+
+# Minor version for new feature
+$ prompt-vc bump refund-handler minor -s "Added escalation rules" -l ann_escalation_01
+✓ Bumped version from 2.1.1 to 2.2.0
+  Version: 2.2.0
+  Author: dev@example.com
+  Date: 2024-03-21
+  Linked: ann_escalation_01
+
+# Preview changes with --dry-run
+$ prompt-vc bump refund-handler major -s "Changed output to JSON" --dry-run
+(dry run) ✓ Would bump version from 2.2.0 to 3.0.0
+```

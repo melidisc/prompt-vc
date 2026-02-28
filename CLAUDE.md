@@ -22,7 +22,8 @@ src/prompt_vc/
 ├── diff.py            # Git-based version comparison
 ├── render.py          # Template rendering with Jinja2
 ├── graph.py           # Dependency graph generation (DOT/PNG/SVG)
-└── compose.py         # Prompt composition with include resolution
+├── compose.py         # Prompt composition with include resolution
+└── versioning.py      # Semantic versioning for prompts
 ```
 
 ## Key Concepts
@@ -31,6 +32,7 @@ src/prompt_vc/
 - **Meta files**: `.prompt.meta.yaml` - structured metadata about each prompt
 - **Manifest**: `prompts.manifest.yaml` - repository-level configuration and prompt registry
 - **Annotations**: Line-level notes with content hashes for tracking why specific text exists
+- **Changelog**: Version history in meta files with linked annotations for traceability
 
 ## CLI Commands
 
@@ -48,8 +50,16 @@ Implemented:
 - `prompt-vc render <id> [--context] [--var] [--output]` - Render prompt with Jinja2 variables
 - `prompt-vc graph [--output] [--format] [--no-domains] [--title]` - Generate dependency graph
 - `prompt-vc compose <id> [--output] [--show-deps]` - Compose prompt with resolved includes
+- `prompt-vc bump <id> <major|minor|patch> --summary <text> [--author] [--link] [--dry-run]` - Bump version and add changelog entry
 
 Note: Commands with `--auto-fix` will automatically update stale `line_hint` values when content has moved.
+
+### Semantic Versioning
+
+The `bump` command follows semantic versioning for prompts:
+- **Major** (2.0 → 3.0): Breaking changes to output format or behavior
+- **Minor** (2.0 → 2.1): New capabilities, backward compatible
+- **Patch** (2.0 → 2.0.1): Bug fixes, wording tweaks
 
 ## Development
 

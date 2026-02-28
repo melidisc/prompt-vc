@@ -792,5 +792,61 @@ def compose(prompt_id: str, output_path: str | None, show_deps: bool) -> None:
         console.print(result.composed_content)
 
 
+@main.command()
+@click.argument("prompt_id")
+@click.argument("bump_type", type=click.Choice(["major", "minor", "patch"]))
+@click.option("--summary", "-s", required=True, help="Summary of changes (required)")
+@click.option("--author", "-a", help="Author email (defaults to git config user.email)")
+@click.option("--link", "-l", "linked_annotations", multiple=True, help="Annotation IDs to link")
+@click.option("--dry-run", is_flag=True, help="Preview changes without writing")
+def bump(
+    prompt_id: str,
+    bump_type: str,
+    summary: str,
+    author: str | None,
+    linked_annotations: tuple[str, ...],
+    dry_run: bool,
+) -> None:
+    """Bump the version of a prompt and add a changelog entry.
+
+    \b
+    Version bump rules:
+      major: Breaking changes to output format or behavior (2.1 -> 3.0)
+      minor: New capabilities, backward compatible (2.1 -> 2.2)
+      patch: Bug fixes, wording tweaks (2.1 -> 2.1.1)
+
+    \b
+    Examples:
+      prompt-vc bump refund-handler patch -s "Fixed typo in greeting"
+      prompt-vc bump refund-handler minor -s "Added new escalation rules"
+      prompt-vc bump refund-handler major -s "Changed output format to JSON"
+    """
+    from .versioning import bump_prompt_version
+
+    result = bump_prompt_version(
+        prompt_id_or_path=prompt_id,
+        bump_type=bump_type,  # type: ignore[arg-type]
+        summary=summary,
+        author=author,
+        linked_annotations=list(linked_annotations) if linked_annotations else None,
+        dry_run=dry_run,
+    )
+
+    if result.success:
+        prefix = "[dim](dry run)[/dim] " if dry_run else ""
+        console.print(f"{prefix}[green]✓[/green] {result.message}")
+        if result.changelog_entry:
+            console.print(f"[dim]  Version: {result.new_version}[/dim]")
+            console.print(f"[dim]  Author: {result.changelog_entry.author}[/dim]")
+            console.print(f"[dim]  Date: {result.changelog_entry.date}[/dim]")
+            if result.changelog_entry.linked_annotations:
+                console.print(
+                    f"[dim]  Linked: {', '.join(result.changelog_entry.linked_annotations)}[/dim]"
+                )
+    else:
+        console.print(f"[red]✗[/red] {result.message}")
+        raise SystemExit(1)
+
+
 if __name__ == "__main__":
     main()
