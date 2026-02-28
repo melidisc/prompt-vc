@@ -2,6 +2,11 @@
 
 ![prompt-vc](https://i.imgur.com/XzwyglW.png)
 
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue?logo=github)](https://melidisc.github.io/prompt-vc)
+[![PyPI](https://img.shields.io/pypi/v/prompt-vc?color=green&logo=python&logoColor=white)](https://pypi.org/project/prompt-vc/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+
 Version control metadata for LLM prompts. Track *why* each line exists, not just *what* it is.
 
 ## The Problem
@@ -132,11 +137,14 @@ For repositories with multiple prompts. See [docs/manifest-schema.md](docs/manif
 
 ## Documentation
 
-- [End-to-End Example](docs/end-to-end-example.md) - Complete walkthrough
-- [Meta File Schema](docs/meta-schema.md)
-- [Manifest Schema](docs/manifest-schema.md)
-- [CLI Reference](docs/cli.md)
-- [Best Practices](docs/best-practices.md)
+**[View Full Documentation](https://melidisc.github.io/prompt-vc)**
+
+- [Getting Started](https://melidisc.github.io/prompt-vc/getting-started/quickstart/) - Installation & quick start
+- [CLI Reference](https://melidisc.github.io/prompt-vc/cli/) - All commands
+- [Meta Schema](https://melidisc.github.io/prompt-vc/meta-schema/) - Metadata format
+- [Manifest Schema](https://melidisc.github.io/prompt-vc/manifest-schema/) - Repository config
+- [Best Practices](https://melidisc.github.io/prompt-vc/best-practices/) - Guidelines
+- [End-to-End Example](https://melidisc.github.io/prompt-vc/end-to-end-example/) - Complete walkthrough
 
 ## Contributing
 
