@@ -42,6 +42,11 @@ dev = [
     "mypy",
     "types-PyYAML",
 ]
+docs = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.0",
+    "pymdown-extensions>=10.0",
+]
 
 [project.scripts]
 prompt-vc = "prompt_vc.cli:main"

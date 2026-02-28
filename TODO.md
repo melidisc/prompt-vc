@@ -113,4 +113,4 @@
 - [x] Add CLI integration tests (click.testing.CliRunner)
 - [ ] Set up GitHub Actions for CI
 - [ ] Add type stubs for better IDE support
-- [ ] Documentation site (mkdocs or similar)
+- [x] Documentation site (mkdocs or similar)
