@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Diff {{ prompt_id }} - prompt-vc{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/ui/prompts/{{ prompt_id }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to {{ prompt_id }}</a>
+    <h1 class="text-2xl font-bold text-gray-900 mt-1">Diff: {{ prompt_id }}</h1>
+</div>
+
+<!-- Ref inputs -->
+<div class="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+    <form hx-get="/ui/prompts/{{ prompt_id }}/diff"
+          hx-target="#diff-output"
+          hx-swap="innerHTML"
+          hx-replace-url="true"
+          hx-indicator="#diff-loading"
+          class="flex flex-col sm:flex-row flex-wrap gap-3 sm:items-end">
+        <div class="w-full sm:w-auto">
+            <label for="diff-old-ref" class="block text-xs font-medium text-gray-600 mb-1">Old ref</label>
+            <input type="text" name="old" id="diff-old-ref" value="{{ old_ref }}" placeholder="HEAD~1"
+                   class="border border-gray-300 rounded px-2 py-1.5 text-sm font-mono w-full sm:w-40">
+        </div>
+        <div class="w-full sm:w-auto">
+            <label for="diff-new-ref" class="block text-xs font-medium text-gray-600 mb-1">New ref</label>
+            <input type="text" name="new" id="diff-new-ref" value="{{ new_ref }}" placeholder="HEAD"
+                   class="border border-gray-300 rounded px-2 py-1.5 text-sm font-mono w-full sm:w-40">
+        </div>
+        <button type="submit" class="bg-blue-600 text-white text-sm px-4 py-1.5 rounded hover:bg-blue-700">Compare</button>
+        <span id="diff-loading" class="htmx-indicator text-sm text-gray-400">Loading...</span>
+    </form>
+</div>
+
+<div id="diff-output">
+    {% include "partials/diff_output.html" %}
+</div>
+{% endblock %}

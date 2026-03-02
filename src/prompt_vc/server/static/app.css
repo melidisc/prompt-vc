@@ -1,0 +1,186 @@
+/* prompt-vc UI styles */
+
+/* Line numbers for code blocks */
+.line-numbers {
+    counter-reset: line;
+}
+.line-numbers .line {
+    counter-increment: line;
+    display: flex;
+    gap: 1rem;
+}
+.line-numbers .line::before {
+    content: counter(line);
+    display: inline-block;
+    width: 2.5rem;
+    text-align: right;
+    color: #6b7280;
+    user-select: none;
+    flex-shrink: 0;
+}
+.line-numbers .line:hover {
+    background-color: rgba(59, 130, 246, 0.08);
+}
+.line-numbers .line.annotated {
+    background-color: rgba(234, 179, 8, 0.10);
+    border-left: 3px solid #eab308;
+    padding-left: 2px;
+}
+
+/* Diff colors */
+.diff-added {
+    background-color: rgba(34, 197, 94, 0.15);
+}
+.diff-removed {
+    background-color: rgba(239, 68, 68, 0.15);
+}
+.diff-context {
+    background-color: transparent;
+}
+
+/* Annotation highlight marker */
+.ann-marker {
+    cursor: pointer;
+    color: #eab308;
+}
+.ann-marker:hover {
+    color: #ca8a04;
+}
+
+/* Badge styles */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.badge-production { background-color: #dcfce7; color: #166534; }
+.badge-staging { background-color: #dbeafe; color: #1e40af; }
+.badge-experimental { background-color: #fef3c7; color: #92400e; }
+.badge-deprecated { background-color: #fee2e2; color: #991b1b; }
+.badge-draft { background-color: #f3f4f6; color: #374151; }
+.badge-error { background-color: #fee2e2; color: #991b1b; }
+.badge-warning { background-color: #fef3c7; color: #92400e; }
+.badge-success { background-color: #dcfce7; color: #166534; }
+
+/* Flash/toast messages */
+.flash-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 24rem;
+}
+.flash-msg {
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    animation: flash-in 0.3s ease-out;
+}
+.flash-success { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.flash-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+@keyframes flash-in {
+    from { opacity: 0; transform: translateY(-0.5rem); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Graph SVG container */
+.graph-container svg {
+    max-width: 100%;
+    height: auto;
+    cursor: grab;
+}
+.graph-container svg:active {
+    cursor: grabbing;
+}
+
+/* Sidebar active link */
+.nav-link.active {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+    border-left: 3px solid #2563eb;
+    padding-left: calc(0.5rem - 3px);
+}
+
+/* Details/summary remove default marker */
+details > summary::-webkit-details-marker {
+    display: none;
+}
+details > summary {
+    list-style: none;
+}
+
+/* HTMX loading indicator */
+.htmx-indicator {
+    display: none;
+}
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+    display: inline-block;
+}
+
+/* Annotation card (sidebar — legacy) */
+.ann-card {
+    transition: opacity 0.3s ease;
+}
+.ann-card.htmx-swapping {
+    opacity: 0;
+}
+
+/* Inline annotations (below code lines) */
+.ann-inline {
+    margin-left: 3.5rem;
+    border-left: 3px solid #3b82f6;
+    margin-bottom: 0.25rem;
+}
+.ann-inline-card {
+    background-color: #eff6ff;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #dbeafe;
+    transition: opacity 0.3s ease;
+}
+.ann-inline-card:last-child {
+    border-bottom: none;
+}
+.ann-inline-card.htmx-swapping {
+    opacity: 0;
+}
+
+/* Details chevron rotation */
+details[open] .details-chevron {
+    transform: rotate(180deg);
+}
+
+/* Table hover */
+.prompt-row:hover {
+    background-color: rgba(59, 130, 246, 0.04);
+}
+
+/* Scrollable code area */
+.code-scroll {
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+/* Mobile responsive overrides */
+@media (max-width: 639px) {
+    .flash-container {
+        left: 1rem;
+        max-width: calc(100% - 2rem);
+    }
+    .line-numbers .line::before {
+        width: 2rem;
+        font-size: 0.75rem;
+    }
+    .ann-inline {
+        margin-left: 3rem;
+    }
+}

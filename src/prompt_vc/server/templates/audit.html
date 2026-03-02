@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Audit - prompt-vc{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-gray-900 mb-6">Governance Audit</h1>
+
+{% if error %}
+<div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6" role="alert">
+    <p class="text-sm text-red-800">{{ error }}</p>
+</div>
+{% else %}
+
+<!-- Summary -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <dl>
+            <dt class="text-sm text-gray-500">Total</dt>
+            <dd class="text-2xl font-bold text-gray-900">{{ report.total_prompts }}</dd>
+        </dl>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <dl>
+            <dt class="text-sm text-gray-500">Compliant</dt>
+            <dd class="text-2xl font-bold text-green-600">{{ report.compliant_count }}</dd>
+        </dl>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <dl>
+            <dt class="text-sm text-gray-500">Non-Compliant</dt>
+            <dd class="text-2xl font-bold {% if report.non_compliant_count > 0 %}text-red-600{% else %}text-green-600{% endif %}">{{ report.non_compliant_count }}</dd>
+        </dl>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <dl>
+            <dt class="text-sm text-gray-500">Skipped</dt>
+            <dd class="text-2xl font-bold text-gray-500">{{ report.skipped_count }}</dd>
+        </dl>
+    </div>
+</div>
+
+{% if report.requirements %}
+<div class="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+    <h2 class="text-sm font-semibold text-gray-700 mb-2">Production Requirements</h2>
+    <div class="text-xs text-gray-600 flex flex-wrap gap-3">
+        <span>Intent required: <strong>{{ 'Yes' if report.requirements.must_have_intent else 'No' }}</strong></span>
+        <span>Evaluation required: <strong>{{ 'Yes' if report.requirements.must_have_evaluation else 'No' }}</strong></span>
+        <span>Min annotations: <strong>{{ report.requirements.min_annotations }}</strong></span>
+        {% if report.requirements.required_tags %}
+        <span>Required tags: <strong>{{ report.requirements.required_tags | join(', ') }}</strong></span>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Results -->
+<div class="space-y-3">
+    {% for r in report.results %}
+    <details class="bg-white rounded-lg border border-gray-200 group">
+        <summary class="px-4 py-3 flex items-center justify-between cursor-pointer list-none">
+            <div class="flex items-center gap-3">
+                {% if r.skipped %}
+                <span class="text-gray-400 text-lg" aria-hidden="true">&#8212;</span>
+                <span class="sr-only">Skipped:</span>
+                {% elif r.compliant %}
+                <span class="text-green-500 text-lg" aria-hidden="true">&#10003;</span>
+                <span class="sr-only">Compliant:</span>
+                {% else %}
+                <span class="text-red-500 text-lg" aria-hidden="true">&#10007;</span>
+                <span class="sr-only">Non-compliant:</span>
+                {% endif %}
+                <span class="text-sm font-medium text-gray-900">{{ r.prompt_id }}</span>
+                <span class="badge badge-{{ r.status }}">{{ r.status }}</span>
+                {% if r.domain %}
+                <span class="text-xs text-gray-500">{{ r.domain }}</span>
+                {% endif %}
+            </div>
+            {% if r.skipped %}
+            <span class="text-xs text-gray-400">{{ r.skip_reason }}</span>
+            {% elif not r.compliant %}
+            <span class="text-xs text-red-500">{{ r.issues | length }} issue{{ 's' if r.issues | length != 1 }}</span>
+            {% endif %}
+        </summary>
+        {% if r.issues %}
+        <div class="border-t border-gray-100 divide-y divide-gray-50">
+            {% for issue in r.issues %}
+            <div class="px-4 py-2 flex items-start gap-3">
+                <span class="mt-0.5 flex-shrink-0">
+                    {% if issue.severity == 'error' %}
+                    <span class="inline-block w-2 h-2 bg-red-500 rounded-full" aria-hidden="true"></span>
+                    {% else %}
+                    <span class="inline-block w-2 h-2 bg-amber-500 rounded-full" aria-hidden="true"></span>
+                    {% endif %}
+                </span>
+                <div>
+                    <p class="text-sm text-gray-800">
+                        <span class="font-medium text-xs uppercase {% if issue.severity == 'error' %}text-red-600{% else %}text-amber-600{% endif %}">{{ issue.severity }}:</span>
+                        {{ issue.message }}
+                    </p>
+                    <p class="text-xs text-gray-400">{{ issue.requirement }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </details>
+    {% endfor %}
+</div>
+
+{% endif %}
+{% endblock %}

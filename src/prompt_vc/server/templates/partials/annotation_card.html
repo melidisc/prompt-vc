@@ -1,0 +1,31 @@
+<div class="ann-card px-4 py-3">
+    <div class="flex items-start justify-between">
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+                <code class="text-xs bg-gray-100 px-1 rounded text-gray-600">L{{ ann.anchor.line_hint or '?' }}</code>
+                <span class="text-xs text-gray-400">{{ ann.id }}</span>
+                {% for tag in ann.tags %}
+                <span class="text-xs bg-blue-50 text-blue-700 px-1 rounded">{{ tag }}</span>
+                {% endfor %}
+            </div>
+            {% if ann.rationale %}
+            <p class="text-sm text-gray-800">{{ ann.rationale }}</p>
+            {% endif %}
+            <div class="text-xs text-gray-400 mt-1">
+                <code class="bg-gray-50 px-1 rounded">{{ ann.anchor.preview[:60] }}{% if ann.anchor.preview | length > 60 %}...{% endif %}</code>
+            </div>
+            {% if ann.source %}
+            <p class="text-xs text-gray-500 mt-0.5">Source: {{ ann.source }}</p>
+            {% endif %}
+            {% if ann.author %}
+            <p class="text-xs text-gray-500">By {{ ann.author }}{% if ann.date %} on {{ ann.date }}{% endif %}</p>
+            {% endif %}
+        </div>
+        <button hx-delete="/ui/prompts/{{ prompt_id }}/annotations/{{ ann.id }}"
+                hx-target="closest .ann-card"
+                hx-swap="outerHTML swap:300ms"
+                hx-confirm="Remove this annotation?"
+                class="text-gray-400 hover:text-red-500 text-sm ml-2 flex-shrink-0"
+                aria-label="Delete annotation">&times;</button>
+    </div>
+</div>

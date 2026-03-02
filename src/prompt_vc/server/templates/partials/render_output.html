@@ -1,0 +1,17 @@
+{% if render_error %}
+<div class="bg-red-50 border border-red-200 rounded p-3">
+    <p class="text-sm text-red-800">{{ render_error }}</p>
+</div>
+{% elif rendered_content %}
+<div class="mb-3">
+    <div class="flex items-center gap-2 mb-2 text-xs text-gray-500">
+        <span>Engine: <strong>{{ template_engine }}</strong></span>
+        {% if variables_used %}
+        <span>Variables: <strong>{{ variables_used | join(', ') }}</strong></span>
+        {% endif %}
+    </div>
+    <pre class="bg-gray-50 rounded border border-gray-200 p-3 text-sm overflow-x-auto whitespace-pre-wrap"><code>{{ rendered_content }}</code></pre>
+</div>
+{% else %}
+<p class="text-sm text-gray-400">Click "Render" to see the output.</p>
+{% endif %}

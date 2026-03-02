@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ meta.id }} - prompt-vc{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/ui/prompts/{{ meta.id }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to {{ meta.id }}</a>
+    <h1 class="text-2xl font-bold text-gray-900 mt-1">Edit: {{ meta.name or meta.id }}</h1>
+    <p class="text-sm text-gray-500 font-mono">{{ prompt_file }}</p>
+</div>
+
+<form method="post" action="/ui/prompts/{{ meta.id }}/edit" hx-boost="false" id="editor-form">
+    <div class="bg-white rounded-lg border border-gray-200">
+        <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-gray-700">Prompt Content</h2>
+            <button type="submit" class="text-sm bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700">Save</button>
+        </div>
+        <div class="p-4">
+            <label for="editor-content" class="sr-only">Prompt content</label>
+            <textarea name="content" id="editor-content" rows="24"
+                      class="w-full font-mono text-sm border border-gray-300 rounded p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">{{ content }}</textarea>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    var form = document.getElementById("editor-form");
+    var textarea = document.getElementById("editor-content");
+    if (!form || !textarea) return;
+
+    var originalContent = textarea.value;
+    var isDirty = false;
+
+    textarea.addEventListener("input", function() {
+        isDirty = textarea.value !== originalContent;
+    });
+
+    form.addEventListener("submit", function() {
+        isDirty = false;
+    });
+
+    window.addEventListener("beforeunload", function(e) {
+        if (isDirty) {
+            e.preventDefault();
+            e.returnValue = "";
+        }
+    });
+
+    // Intercept hx-boost navigation when dirty
+    document.addEventListener("htmx:confirm", function(e) {
+        if (isDirty && e.detail.elt.tagName === "A") {
+            if (!confirm("You have unsaved changes. Leave this page?")) {
+                e.preventDefault();
+            }
+        }
+    });
+})();
+</script>
+{% endblock %}

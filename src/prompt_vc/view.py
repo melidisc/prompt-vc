@@ -76,11 +76,13 @@ def find_meta_file_by_path(prompt_path: str) -> Path | None:
 
 def load_prompt_and_meta(
     prompt_id_or_path: str,
+    search_path: Path | None = None,
 ) -> tuple[Path | None, Path | None, PromptMeta | None, list[str]]:
     """Load prompt file, meta file, and parsed metadata.
 
     Args:
         prompt_id_or_path: Either a prompt ID or path to prompt/meta file
+        search_path: Directory to search for prompt files
 
     Returns:
         Tuple of (meta_path, prompt_path, parsed_meta, issues)
@@ -90,7 +92,7 @@ def load_prompt_and_meta(
     # Try to find the meta file
     meta_path = find_meta_file_by_path(prompt_id_or_path)
     if meta_path is None:
-        meta_path = find_meta_file_by_id(prompt_id_or_path)
+        meta_path = find_meta_file_by_id(prompt_id_or_path, search_path)
 
     if meta_path is None:
         issues.append(f"Could not find prompt: {prompt_id_or_path}")

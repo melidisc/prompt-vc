@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Prompts - prompt-vc{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Prompts</h1>
+    <a href="/ui/prompts/new" class="text-sm bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700">New Prompt</a>
+</div>
+
+<!-- Filters -->
+<form id="filter-form"
+      class="bg-white rounded-lg border border-gray-200 p-4 mb-4 flex flex-wrap gap-3 items-end"
+      hx-get="/ui/prompts"
+      hx-target="#prompt-tbody"
+      hx-replace-url="true"
+      hx-trigger="change from:select, keyup changed delay:500ms from:#owner-filter"
+      hx-indicator="#table-loading">
+    <div class="w-full sm:w-auto">
+        <label for="filter-domain" class="block text-xs font-medium text-gray-600 mb-1">Domain</label>
+        <select name="domain" id="filter-domain" class="w-full sm:w-auto border border-gray-300 rounded px-2 py-1.5 text-sm">
+            <option value="">All domains</option>
+            {% for d in domains %}
+            <option value="{{ d }}" {% if filters.domain == d %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="w-full sm:w-auto">
+        <label for="filter-status" class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+        <select name="status" id="filter-status" class="w-full sm:w-auto border border-gray-300 rounded px-2 py-1.5 text-sm">
+            <option value="">All statuses</option>
+            {% for s in statuses %}
+            <option value="{{ s }}" {% if filters.status == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="w-full sm:w-auto">
+        <label for="owner-filter" class="block text-xs font-medium text-gray-600 mb-1">Owner</label>
+        <input type="text" name="owner" id="owner-filter" value="{{ filters.owner or '' }}" placeholder="Filter by owner"
+               class="w-full sm:w-auto border border-gray-300 rounded px-2 py-1.5 text-sm">
+    </div>
+    <div>
+        <span id="table-loading" class="htmx-indicator text-sm text-gray-400">Loading...</span>
+    </div>
+</form>
+
+<!-- Table -->
+<div class="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="border-b border-gray-200 bg-gray-50">
+                <th class="text-left px-4 py-2 font-medium text-gray-600">ID</th>
+                <th class="text-left px-4 py-2 font-medium text-gray-600 hidden sm:table-cell">Name</th>
+                <th class="text-left px-4 py-2 font-medium text-gray-600">Domain</th>
+                <th class="text-left px-4 py-2 font-medium text-gray-600">Status</th>
+                <th class="text-left px-4 py-2 font-medium text-gray-600 hidden md:table-cell">Path</th>
+            </tr>
+        </thead>
+        <tbody id="prompt-tbody">
+            {% include "partials/prompt_table_body.html" %}
+        </tbody>
+    </table>
+</div>
+
+<p class="text-xs text-gray-400 mt-2">{{ prompts | length }} prompt{{ 's' if prompts | length != 1 }}{% if from_manifest %} (from manifest){% endif %}</p>
+{% endblock %}

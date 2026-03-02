@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Compose {{ prompt_id }} - prompt-vc{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/ui/prompts/{{ prompt_id }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to {{ prompt_id }}</a>
+    <h1 class="text-2xl font-bold text-gray-900 mt-1">Compose: {{ prompt_id }}</h1>
+</div>
+
+{% if error %}
+<div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+    <p class="text-sm text-red-800">{{ error }}</p>
+</div>
+{% else %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Composed content -->
+    <div class="lg:col-span-2 min-w-0">
+        <div class="bg-white rounded-lg border border-gray-200">
+            <div class="px-4 py-3 border-b border-gray-200">
+                <h2 class="text-sm font-semibold text-gray-700">Composed Content</h2>
+            </div>
+            <div class="p-4 code-scroll">
+                <pre class="text-sm whitespace-pre-wrap"><code>{{ composed_content }}</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dependencies -->
+    <div>
+        <div class="bg-white rounded-lg border border-gray-200">
+            <div class="px-4 py-3 border-b border-gray-200">
+                <h2 class="text-sm font-semibold text-gray-700">Dependencies</h2>
+            </div>
+            <div class="p-4">
+                {% if resolved_prompts %}
+                <p class="text-xs text-gray-500 mb-2">Resolved prompts ({{ resolved_prompts | length }}):</p>
+                <ul class="space-y-1">
+                    {% for pid in resolved_prompts %}
+                    <li>
+                        <a href="/ui/prompts/{{ pid }}" class="text-sm text-blue-600 hover:underline">{{ pid }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-sm text-gray-400">No dependencies.</p>
+                {% endif %}
+
+                {% if dependencies %}
+                <p class="text-xs text-gray-500 mt-4 mb-2">Include chain:</p>
+                <div class="space-y-1 text-xs min-w-0 overflow-hidden">
+                    {% for dep in dependencies %}
+                    <div class="flex items-center gap-1 text-gray-600 flex-wrap min-w-0">
+                        <span class="font-mono truncate">{{ dep.from_id }}</span>
+                        <span class="text-gray-400 flex-shrink-0">&rarr;</span>
+                        <span class="font-mono truncate">{{ dep.to_id }}</span>
+                        <span class="text-gray-400 flex-shrink-0">({{ dep.include_type }})</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Dependency Graph - prompt-vc{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-gray-900 mb-6">Dependency Graph</h1>
+
+{% if error %}
+<div class="bg-red-50 border border-red-200 rounded-lg p-4" role="alert">
+    <p class="text-sm text-red-800">{{ error }}</p>
+</div>
+{% else %}
+
+<div class="bg-white rounded-lg border border-gray-200">
+    <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-gray-700">Graph</h2>
+        <button onclick="window._graphPanZoom && window._graphPanZoom.reset()" class="text-xs text-gray-500 hover:text-gray-700 border border-gray-300 rounded px-2 py-1">Reset View</button>
+    </div>
+    <div id="graph-container" class="graph-container p-4 overflow-hidden min-h-[300px] sm:min-h-[400px]">
+        <p class="text-sm text-gray-400" id="graph-loading">Rendering graph...</p>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if dot_source %}
+<script>
+(function() {
+    var dotSource = {{ dot_source | tojson }};
+    var container = document.getElementById("graph-container");
+    var loading = document.getElementById("graph-loading");
+    if (!container || !loading) return;
+
+    function tryRender() {
+        if (typeof Viz === "undefined") {
+            setTimeout(tryRender, 200);
+            return;
+        }
+        Viz.instance().then(function(viz) {
+            var svg = viz.renderSVGElement(dotSource);
+            svg.style.width = "100%";
+            svg.style.height = "auto";
+            loading.remove();
+            container.appendChild(svg);
+            window._graphPanZoom = initGraphPanZoom(container);
+        }).catch(function(err) {
+            loading.textContent = "Failed to render graph: " + err.message;
+            loading.classList.add("text-red-500");
+        });
+    }
+    tryRender();
+})();
+</script>
+{% endif %}
+{% endblock %}
