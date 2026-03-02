@@ -5,8 +5,14 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from .routes import audit, compose, diff, graph, prompts, render, validate
+from .ui import create_ui_router
+
+_SERVER_DIR = Path(__file__).resolve().parent
 
 
 def create_app(workspace_root: Path | None = None, dev: bool = False) -> FastAPI:
@@ -32,6 +38,11 @@ def create_app(workspace_root: Path | None = None, dev: bool = False) -> FastAPI
             allow_headers=["*"],
         )
 
+    # Static files and templates
+    app.mount("/static", StaticFiles(directory=_SERVER_DIR / "static"), name="static")
+    templates = Jinja2Templates(directory=str(_SERVER_DIR / "templates"))
+
+    # JSON API routes
     app.include_router(prompts.router, prefix="/api")
     app.include_router(validate.router, prefix="/api")
     app.include_router(audit.router, prefix="/api")
@@ -40,9 +51,16 @@ def create_app(workspace_root: Path | None = None, dev: bool = False) -> FastAPI
     app.include_router(diff.router, prefix="/api")
     app.include_router(graph.router, prefix="/api")
 
+    # HTML UI routes
+    app.include_router(create_ui_router(templates))
+
     @app.get("/api/health")
     def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    @app.get("/", include_in_schema=False)
+    def root_redirect() -> RedirectResponse:
+        return RedirectResponse(url="/ui/")
 
     return app
 

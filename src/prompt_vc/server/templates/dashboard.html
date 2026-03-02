@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - prompt-vc{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+
+<!-- Stat cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+    <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <dl>
+            <dt class="text-sm text-gray-500">Total Prompts</dt>
+            <dd class="text-3xl font-bold text-gray-900">{{ prompt_count }}</dd>
+        </dl>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <dl>
+            <dt class="text-sm text-gray-500">Domains</dt>
+            <dd class="text-3xl font-bold text-gray-900">{{ domain_count }}</dd>
+        </dl>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <dl>
+            <dt class="text-sm text-gray-500">Validation</dt>
+            <dd class="text-sm text-gray-400 mt-1">
+                <span hx-get="/ui/validation-summary"
+                      hx-trigger="load"
+                      hx-swap="innerHTML"
+                      hx-indicator="#val-loading"
+                      class="inline-block">
+                    <span id="val-loading" class="htmx-indicator text-xs text-gray-400">Checking...</span>
+                </span>
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<!-- Prompts table -->
+<div class="bg-white rounded-lg border border-gray-200">
+    <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-900">Prompts</h2>
+        <a href="/ui/prompts/new" class="text-sm bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700">New Prompt</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                    <th class="text-left px-4 py-2 font-medium text-gray-600">ID</th>
+                    <th class="text-left px-4 py-2 font-medium text-gray-600 hidden sm:table-cell">Name</th>
+                    <th class="text-left px-4 py-2 font-medium text-gray-600">Domain</th>
+                    <th class="text-left px-4 py-2 font-medium text-gray-600">Status</th>
+                    <th class="text-left px-4 py-2 font-medium text-gray-600 hidden md:table-cell">Path</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% include "partials/prompt_table_body.html" %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Lazy-loaded validation summary -->
+<div id="validation-summary-section" class="mt-6"
+     hx-get="/ui/validation-summary"
+     hx-trigger="load"
+     hx-swap="innerHTML">
+    <div class="text-sm text-gray-400 text-center py-4">Loading validation results...</div>
+</div>
+{% endblock %}

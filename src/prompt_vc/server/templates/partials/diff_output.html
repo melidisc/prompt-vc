@@ -1,0 +1,59 @@
+{% if diff_error %}
+<div class="bg-red-50 border border-red-200 rounded-lg p-4">
+    <p class="text-sm text-red-800">{{ diff_error }}</p>
+</div>
+{% elif line_diffs is defined and line_diffs %}
+<div class="bg-white rounded-lg border border-gray-200">
+    <div class="px-4 py-3 border-b border-gray-200 flex items-center gap-4">
+        <h2 class="text-sm font-semibold text-gray-700">Changes</h2>
+        <span class="text-xs text-gray-400 font-mono">{{ prompt_path }}</span>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm font-mono">
+            <tbody>
+                {% for line in line_diffs %}
+                <tr class="diff-{{ line.change_type }}">
+                    <td class="px-2 py-0.5 text-right text-gray-400 select-none w-12 border-r border-gray-200">
+                        {% if line.line_number %}{{ line.line_number }}{% endif %}
+                    </td>
+                    <td class="px-1 py-0.5 text-center w-6 select-none">
+                        {% if line.change_type == 'added' %}+{% elif line.change_type == 'removed' %}-{% endif %}
+                    </td>
+                    <td class="px-2 py-0.5 whitespace-pre-wrap">{{ line.content }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if annotation_changes %}
+<div class="bg-white rounded-lg border border-gray-200 mt-4">
+    <div class="px-4 py-3 border-b border-gray-200">
+        <h2 class="text-sm font-semibold text-gray-700">Annotation Changes</h2>
+    </div>
+    <div class="divide-y divide-gray-100">
+        {% for change in annotation_changes %}
+        <div class="px-4 py-2 flex items-center gap-3">
+            <span class="text-xs font-mono text-gray-600">{{ change.annotation_id }}</span>
+            <span class="badge badge-{% if change.change_type == 'added' %}success{% elif change.change_type == 'removed' %}error{% else %}warning{% endif %}">
+                {{ change.change_type }}
+            </span>
+            {% if change.details %}
+            <span class="text-xs text-gray-500">{{ change.details }}</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% elif line_diffs is defined %}
+<div class="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
+    No differences found between <code class="bg-gray-100 px-1 rounded">{{ old_ref }}</code> and <code class="bg-gray-100 px-1 rounded">{{ new_ref }}</code>.
+</div>
+{% else %}
+<div class="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-400">
+    Select git refs and click "Compare" to view differences.
+</div>
+{% endif %}

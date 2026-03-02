@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}New Prompt - prompt-vc{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/ui/prompts" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to prompts</a>
+    <h1 class="text-2xl font-bold text-gray-900 mt-1">Create New Prompt</h1>
+</div>
+
+{% if error %}
+<div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4" role="alert">
+    <p class="text-sm text-red-800">{{ error }}</p>
+</div>
+{% endif %}
+
+<form method="post" action="/ui/prompts/new" hx-boost="false" class="max-w-lg">
+    <div class="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+        <div>
+            <label for="new-prompt-id" class="block text-sm font-medium text-gray-700 mb-1">Prompt ID</label>
+            <input type="text" name="prompt_id" id="new-prompt-id" required placeholder="e.g. my-prompt"
+                   pattern="[a-z0-9][a-z0-9\-]*"
+                   class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <p class="text-xs text-gray-500 mt-1">Lowercase letters, numbers, and hyphens only</p>
+        </div>
+        <div>
+            <label for="new-prompt-domain" class="block text-sm font-medium text-gray-700 mb-1">Domain</label>
+            <input type="text" name="domain" id="new-prompt-domain" placeholder="e.g. customer-support"
+                   pattern="[a-z0-9][a-z0-9\-]*"
+                   class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <p class="text-xs text-gray-500 mt-1">Optional domain/category for the prompt</p>
+        </div>
+        <div>
+            <label for="new-prompt-fmt" class="block text-sm font-medium text-gray-700 mb-1">Format</label>
+            <select name="fmt" id="new-prompt-fmt" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                <option value="md">Markdown (.prompt.md)</option>
+                <option value="jinja">Jinja2 (.prompt.jinja)</option>
+                <option value="txt">Text (.prompt.txt)</option>
+            </select>
+        </div>
+        <div class="pt-2">
+            <button type="submit" class="bg-blue-600 text-white text-sm px-4 py-2 rounded hover:bg-blue-700">Create Prompt</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

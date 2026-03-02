@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Validation - prompt-vc{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-gray-900 mb-6">Validation</h1>
+
+<!-- Summary stats -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <dl>
+            <dt class="text-sm text-gray-500">Total Prompts</dt>
+            <dd class="text-2xl font-bold text-gray-900">{{ results | length }}</dd>
+        </dl>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <dl>
+            <dt class="text-sm text-gray-500">Errors</dt>
+            <dd class="text-2xl font-bold {% if total_errors > 0 %}text-red-600{% else %}text-green-600{% endif %}">{{ total_errors }}</dd>
+        </dl>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <dl>
+            <dt class="text-sm text-gray-500">Warnings</dt>
+            <dd class="text-2xl font-bold {% if total_warnings > 0 %}text-amber-600{% else %}text-green-600{% endif %}">{{ total_warnings }}</dd>
+        </dl>
+    </div>
+</div>
+
+<!-- Results list -->
+<div class="space-y-3">
+    {% for r in results %}
+    <details class="bg-white rounded-lg border border-gray-200 group">
+        <summary class="px-4 py-3 flex items-center justify-between cursor-pointer list-none">
+            <div class="flex items-center gap-3">
+                {% if r.valid %}
+                <span class="text-green-500 text-lg" aria-hidden="true">&#10003;</span>
+                <span class="sr-only">Valid:</span>
+                {% else %}
+                <span class="text-red-500 text-lg" aria-hidden="true">&#10007;</span>
+                <span class="sr-only">Invalid:</span>
+                {% endif %}
+                <span class="text-sm font-medium text-gray-900">{{ r.meta_file }}</span>
+                {% if r.error_count > 0 %}
+                <span class="badge badge-error">{{ r.error_count }} error{{ 's' if r.error_count != 1 }}</span>
+                {% endif %}
+                {% if r.warning_count > 0 %}
+                <span class="badge badge-warning">{{ r.warning_count }} warning{{ 's' if r.warning_count != 1 }}</span>
+                {% endif %}
+            </div>
+            <span class="text-gray-400 text-xs">{% if r.prompt_file %}{{ r.prompt_file }}{% endif %}</span>
+        </summary>
+        {% if r.issues %}
+        <div class="border-t border-gray-100">
+            {% include "partials/validation_detail.html" %}
+        </div>
+        {% endif %}
+    </details>
+    {% else %}
+    <div class="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
+        No prompt meta files found to validate.
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

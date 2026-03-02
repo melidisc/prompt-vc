@@ -1,0 +1,5 @@
+{% for ann in meta.annotations %}
+{% include "partials/annotation_card.html" %}
+{% else %}
+<div class="px-4 py-4 text-sm text-gray-400 text-center">No annotations yet.</div>
+{% endfor %}

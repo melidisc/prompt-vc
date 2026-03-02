@@ -1,0 +1,28 @@
+schema_version: '1.0'
+id: customer-support
+name: Customer Support
+created: '2026-03-02'
+authors: []
+intent: 'Describe what this prompt should accomplish.
+
+  '
+assumptions:
+  model: claude-sonnet-4-20250514
+  template_engine: none
+variables: {}
+evaluation:
+  metrics: []
+annotations:
+  - id: ann_m9an4m
+    anchor:
+      hash: sha256:dfb6abc3e11ff1c67b635035dd0de5ecfc76c4e5a2563530ee1cf934f8d4b5b0
+      preview: Your prompt content here.
+      line_hint: 3
+    date: '2026-03-02'
+    rationale: needed a way to explain the prompt
+changelog:
+  - version: '1.0'
+    date: '2026-03-02'
+    author: ''
+    summary: Initial version
+    linked_annotations: []

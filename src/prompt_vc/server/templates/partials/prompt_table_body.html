@@ -1,0 +1,17 @@
+{% for p in prompts %}
+<tr class="border-b border-gray-100 prompt-row">
+    <td class="px-4 py-2">
+        <a href="/ui/prompts/{{ p.id }}" class="text-blue-600 hover:underline font-medium">{{ p.id }}</a>
+    </td>
+    <td class="px-4 py-2 text-gray-700 hidden sm:table-cell">{{ p.name or '—' }}</td>
+    <td class="px-4 py-2 text-gray-600">{{ p.domain or '—' }}</td>
+    <td class="px-4 py-2">
+        <span class="badge badge-{{ p.status }}">{{ p.status }}</span>
+    </td>
+    <td class="px-4 py-2 text-gray-500 text-xs font-mono hidden md:table-cell">{{ p.path }}</td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="5" class="px-4 py-8 text-center text-gray-500">No prompts match the current filters.</td>
+</tr>
+{% endfor %}

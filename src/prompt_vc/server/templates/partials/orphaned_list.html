@@ -1,0 +1,15 @@
+{% if orphans %}
+<div class="mt-2 space-y-2">
+    {% for o in orphans %}
+    <div class="text-xs bg-amber-50 border border-amber-200 rounded p-2">
+        <strong>{{ o.annotation.id }}</strong>:
+        <code class="text-xs">{{ o.annotation.anchor.preview[:50] }}</code>
+        {% if o.suggestions %}
+        <span class="text-xs text-gray-400"> — possible match at line {{ o.suggestions[0][0] }}</span>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-xs text-green-600 mt-2">No orphaned annotations found.</p>
+{% endif %}
