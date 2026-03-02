@@ -199,9 +199,7 @@ class TestCreatePrompt:
         manifest_path = workspace / "prompts" / "prompts.manifest.yaml"
         with open(manifest_path) as f:
             manifest = yaml.safe_load(f)
-        prompt_ids = [
-            p["id"] for p in manifest["domains"]["support"]["prompts"]
-        ]
+        prompt_ids = [p["id"] for p in manifest["domains"]["support"]["prompts"]]
         assert "manifest-test" in prompt_ids
 
 

@@ -119,9 +119,7 @@ def create_ui_router(templates: Jinja2Templates) -> APIRouter:
         if status:
             filtered = [p for p in filtered if p.status == status]
         if owner:
-            filtered = [
-                p for p in filtered if any(owner.lower() in o.lower() for o in p.owners)
-            ]
+            filtered = [p for p in filtered if any(owner.lower() in o.lower() for o in p.owners)]
 
         # For HTMX partial swap, return just the table body
         if _is_htmx(request):
@@ -650,5 +648,3 @@ def create_ui_router(templates: Jinja2Templates) -> APIRouter:
         )
 
     return router
-
-

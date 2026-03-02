@@ -120,7 +120,8 @@ def get_prompt(
     root: Path = Depends(get_workspace_root),
 ) -> PromptDetailResponse:
     meta_path, prompt_path, meta, issues = load_prompt_and_meta(
-        prompt_id, search_path=root,
+        prompt_id,
+        search_path=root,
     )
 
     if meta is None:
@@ -150,7 +151,8 @@ def get_prompt_content(
     root: Path = Depends(get_workspace_root),
 ) -> dict[str, str]:
     meta_path, prompt_path, meta, issues = load_prompt_and_meta(
-        prompt_id, search_path=root,
+        prompt_id,
+        search_path=root,
     )
     if meta is None or prompt_path is None:
         raise HTTPException(status_code=404, detail="Prompt not found")
@@ -177,7 +179,8 @@ def create_prompt(
 
     today = datetime.date.today().isoformat()
     prompt_file.write_text(
-        f"# {body.prompt_id}\n\nYour prompt content here.\n", encoding="utf-8",
+        f"# {body.prompt_id}\n\nYour prompt content here.\n",
+        encoding="utf-8",
     )
     meta_file.write_text(
         f'schema_version: "1.0"\n\n'
@@ -197,7 +200,10 @@ def create_prompt(
 
 
 def _add_prompt_to_manifest(
-    root: Path, prompt_id: str, domain: str | None, fmt: str,
+    root: Path,
+    prompt_id: str,
+    domain: str | None,
+    fmt: str,
 ) -> None:
     """Best-effort: append new prompt to manifest if one exists."""
     manifest_path = find_manifest(root)
@@ -240,7 +246,8 @@ def update_content(
     root: Path = Depends(get_workspace_root),
 ) -> dict[str, str]:
     meta_path, prompt_path, meta, issues = load_prompt_and_meta(
-        prompt_id, search_path=root,
+        prompt_id,
+        search_path=root,
     )
     if meta is None or prompt_path is None:
         raise HTTPException(status_code=404, detail="Prompt not found")
@@ -260,7 +267,8 @@ def add_annotation(
     root: Path = Depends(get_workspace_root),
 ) -> AnnotationResponse:
     meta_path, prompt_path, meta, issues = load_prompt_and_meta(
-        prompt_id, search_path=root,
+        prompt_id,
+        search_path=root,
     )
     if meta is None or prompt_path is None or meta_path is None:
         raise HTTPException(status_code=404, detail="Prompt not found")
@@ -299,7 +307,8 @@ def delete_annotation(
     root: Path = Depends(get_workspace_root),
 ) -> dict[str, str]:
     meta_path, prompt_path, meta, issues = load_prompt_and_meta(
-        prompt_id, search_path=root,
+        prompt_id,
+        search_path=root,
     )
     if meta is None or meta_path is None:
         raise HTTPException(status_code=404, detail="Prompt not found")
@@ -320,7 +329,8 @@ def get_orphaned_annotations(
     root: Path = Depends(get_workspace_root),
 ) -> FixAnnotationsResponse:
     meta_path, prompt_path, meta, issues = load_prompt_and_meta(
-        prompt_id, search_path=root,
+        prompt_id,
+        search_path=root,
     )
     if meta is None or prompt_path is None:
         raise HTTPException(status_code=404, detail="Prompt not found")
